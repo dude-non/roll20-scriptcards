@@ -1,0 +1,169 @@
+!scriptcard {{
+	--#title|Light Cannon Attack
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=TargetAC|[*T:ac]
+	--? [$TargetAC] -gt 0|SkipAC
+	--=TargetAC|[*T:npc_ac]
+	--:SkipAC|
+
+	--#emoteText|@{selected|token_name} Fires!
+
+	--&ToHitBonus|6
+	--&AttackType|VEHICLE
+	--&Damage1String|4d10
+	--&Damage1CritString|8d10
+	--&Damage1Type|Bludgeoning
+	--&Damage2String|DAMAGE
+	--&Damage2CritString|CRIT_DAMAGE
+	--&Damage2Type|TYPE
+	--=AmmoCost|1
+	--&SourceType|ALLY
+	
+	--=CritFlag|0
+
+	--&EffectString1|@{selected|bar2}
+	--&EffectString2|@{target|bar2}
+
+	--&RollString|?{Attack is:|Advantage,2d20kh1|Normal,1d20|Disadvantage,2d20kl1}
+
+	--&RollString|+ + [&ToHitBonus]
+
+	--=ToHit|[&RollString]
+
+	--+To Hit|[$ToHit]
+
+	--? [$ToHit.Base] -eq 20|Crit
+	--? [$ToHit.Base] -eq 1|Fumble
+	--? [$ToHit.Total] -ge [$TargetAC]|Hit
+	--? [$ToHit.Total] -lt [$TargetAC]|Miss
+
+	--:ToHitReturn|
+
+	--=Damage1|0
+	--=Damage2|0
+
+	--=Damage1|[&Damage1String]
+	--+[&Damage1Type] Damage|[$Damage1]
+	--? "[&Damage2Type]" -ne TYPE|[
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] Damage|[$Damage2]
+	--]|
+
+	--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>Vuln1
+	--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>Vuln2
+	--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>Resist1
+	--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>Resist2
+	--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>Immune1
+	--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>Immune2
+
+	--=TotalDamage|[$Damage1] + [$Damage2]
+
+	--? "[&EffectString2]" -inc "DT"|>ApplyDamageThreshold
+
+	--@token-mod| _ids @{selected|token_id} _set bar2_value|[&EffectString1]
+
+	--? @{target|bar3} -gt 0|ApplyTempDamage
+	--^ApplyDamage|
+	--X|
+
+	--:Crit|
+		--+CRITICAL|Critical Hit!
+		--=CritFlag|1
+		--&Damage1String|[&Damage1CritString]
+		--&Damage2String|[&Damage2CritString]
+	--^ToHitReturn|
+
+	--:Fumble|
+		--+FUMBLE|Fumble!
+
+		--@token-mod| _ids @{selected|token_id} _set bar2_value|[&EffectString1]
+	--X|
+
+	--:Hit|
+		--+HIT|Hit!
+	--^ToHitReturn|
+
+	--:Miss|
+		--+MISS|Miss!
+
+		--@token-mod| _ids @{selected|token_id} _set bar2_value|[&EffectString1]
+	--X|
+
+	--:Vuln1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:Vuln2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:Resist1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:Resist2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:Immune1|
+		--=Damage1|0
+	--<|
+
+	--:Immune2|
+		--=Damage2|0
+	--<|
+
+	--:ApplyDamage|
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^Mark|
+	--X|
+
+	--:ApplyTempDamage|
+		--? @{target|bar3} -lt [$TotalDamage]|ApplyPartial
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^Mark|
+	--X|
+
+	--:ApplyPartial|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^Mark|
+	--X|
+
+	--:ApplyDamageThreshold|
+		--+Damage Threshold|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:Mark|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MarkRed
+		--? [$EstFinalHP] -le 0|MarkDead
+		--:ReturnMark|
+	--X|
+
+  	--:MarkRed|
+  		--@token-mod| _ids @{target|token_id} _set statusmarkers#red
+  	--^ReturnMark|
+
+  	--:MarkDead|
+  		--@token-mod| _ids @{target|token_id} _set statusmarkers#dead|-red
+  	--^ReturnMark|
+
+  	--:NotEnoughAmmo|
+  		--+FAILURE|Not Enough Ammunition!
+  	--X|
+}}
