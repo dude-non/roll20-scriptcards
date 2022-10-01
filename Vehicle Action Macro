@@ -1,0 +1,20 @@
+!scriptcard {{
+	--#title|Vehicle Weapon Action
+	--#sourceToken|@{selected|token_id}
+
+	--? @{selected|bar2} -ne @{selected|WeaponStateMax}|Load
+	--? @{selected|bar2} -eq @{selected|WeaponStateMax}|Fire
+	--X|
+
+	--:Load|
+	--=NewState|@{selected|bar2} + 1
+	--@token-mod| _set bar2|[$NewState]
+	--@token-mod| _set bar2_max|@{selected|WeaponStateMax}
+	--+Action|@{selected|character_name} is loading...
+	--X|
+
+	--:Fire|
+	--+Fire|[sheetbutton]Click Here::[*S:character_id]::Fire[/sheetbutton]
+	--@token-mod| _set bar2|0
+	--X
+}}
