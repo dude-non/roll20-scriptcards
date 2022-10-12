@@ -1,0 +1,19 @@
+!scriptcard{{
+	--#title|Determine Damage for Spell
+	--#sourceToken|@{selected|token_id}
+
+	--:INIT_VALUES|
+	--=Damage1Count|0
+	--=Damage1Die|0	
+	--=Damage1Type|@{selected|bar1}
+	--=SpellLevel|@{selected|bar2}
+	--=BaseLevel|0
+	--=Bonus|[$SpellLevel] - [$BaseLevel]
+	--=Damage1Count|[$Damage1Count] + [$Bonus]
+
+	--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+	--=Damage|[&Damage1String]
+	--+[&Damage1Type] DAMAGE|[$Damage]
+	--@token-mod| _ids [*S:t-id] _set bar3_value|[$Damage]
+	--X|
+}}		

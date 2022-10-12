@@ -1,0 +1,743 @@
+!scriptcard{{
+	--#title|Isabella Attack
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=TargetAC|[*T:ac]
+	--? [*T:npc_ac] -lt [$TargetAC]|SkipAC
+	--=TargetAC|[*T:npc_ac]
+	--:SkipAC|
+
+  	--~Distance|distance;[*S:t-id];[*T:t-id]
+  	--=Distance|[$Distance] * 5
+
+	--+COVER|[rbutton]Half Cover::HALF_COVER[/rbutton]
+	--+COVER|[rbutton]3/4 Cover::3Q_COVER[/rbutton]
+	--:COVER_RETURN|
+
+	--+WEAPON|[rbutton]Isabella's Lever Action Rifle::LEVER_ACTION_RIFLE[/rbutton] [rbutton]Reload::LEVER_ACTION_RELOAD[/rbutton] @{selected|class_resource} / 7 bullets
+	--+WEAPON|[rbutton]+1 Shortsword::SHORTSWORD[/rbutton]
+	--+ABILITY|[rbutton]Vampiric Bite::VAMPIRE_BITE[/rbutton]
+
+	--:INIT_VALUES|
+	--=Damage1Count|0
+	--=Damage1Die|0
+	--&Damage1Type|NULL
+	--=Damage2Count|0
+	--=Damage2Die|0
+	--&Damage2Type|NULL
+	--&SEffectString|[*S:t-bar2_value]
+	--&TEffectString|[*T:t-bar2_value]
+	--=BardicFlag|0
+	--=BardicDie|@{Nobis|BardicInspirationDie}
+	--=CritFlag|0
+	--&AttackType|NULL
+	--&WeaponName|NULL
+	--=DamageFlag|0
+	--=ZephyrDamageCount|0
+	--=ZephyrDamageDie|0
+	--=ZephyrFlag|0
+	--=GatheredSwarmCount|0
+	--=GatheredSwarmDie|0
+	--=GatheredSwarmFlag|0
+
+	--? [&TEffectString] -inc Sunder|>APPLY_SUNDER
+	--X|
+
+	--:HALF_COVER|
+		--+COVER|Half Cover: AC + 2!
+		--=TargetAC|[$TargetAC] + 2
+	--^COVER_RETURN|
+
+	--:3Q_COVER|
+		--+COVER|3/4 Cover: AC + 5!
+		--=TargetAC|[$TargetAC] + 5
+	--^COVER_RETURN|
+
+	--:APPLY_SUNDER|
+		--~AfterStart|string;after;Sunder:;[&TEffectString]
+		--~Num|string;before;:;[&AfterStart]
+
+		--=Num|[&Num]
+
+		--+SUNDER|Target was sundered, reduced AC!
+		--=TargetAC|[$TargetAC] - [$Num]
+	--<|
+
+	--:LEVER_ACTION_RIFLE|
+		--=Damage1Count|2
+		--=Damage1Die|6
+		--&Damage1Type|Magical Piercing
+		--&DamageMod|[*S:dexterity_mod] + 1
+		--&ToHitMod|[*S:pb] + [*S:dexterity_mod] + 1 + 2
+		--&AttackType|DEX
+		--&WeaponType|RANGED
+		--&WeaponName|Isabella's Lever Action Rifle
+		--&WeaponTags|Puncture,Penetrate
+		--=DeflectableFlag|0
+		--=NormalRange|300
+		--=LongRange|900
+		-->CHECK_DISTANCE|
+	--^SELECT_ATTACK|
+
+	--:LEVER_ACTION_RELOAD|
+		--=CurrentAmmo|[*S:class_resource]
+		--=ReserveAmmo|[*S:other_resource]
+		--=MaxAmmo|7
+		--=AmmoToLoad|[$MaxAmmo] - [$CurrentAmmo]
+		--? [$AmmoToLoad] -gt [$ReserveAmmo]|PARTIAL_RELOAD_RIFLE
+		--=RemainingReserve|[$ReserveAmmo] - [$AmmoToLoad]
+		--+AMMO|[$MaxAmmo] / [$MaxAmmo] bullets
+		--+RESERVE|[$RemainingReserve] bullets
+		--@setattr| _charid [*S:id] _class_resource|[$MaxAmmo] _silent
+		--@setattr| _charid [*S:id] _other_resource|[$RemainingReserve] _silent
+	--X|
+
+	--:PARTIAL_RELOAD_RIFLE|
+		--=CurrentAmmo|[$CurrentAmmo] + [$ReserveAmmo]
+		--+AMMO|[$CurrentAmmo] / [$MaxAmmo] bullets
+		--+RESERVE|Reserve Depleted!
+		--@setattr| _charid [*S:id] _class_resource|[$CurrentAmmo] _silent
+		--@setattr| _charid [*S:id] _other_resource|0 _silent
+	--X|
+
+	--:OFFER_AMMO_LEVER_ACTION|
+		--+AMMO|[rbutton]+1 Ammo::USE_AMMO_LEVER_ACTION;1[/rbutton]
+		--+AMMO|[rbutton]+2 Ammo::USE_AMMO_LEVER_ACTION;2[/rbutton]
+		--+AMMO|[rbutton]+3 Ammo::USE_AMMO_LEVER_ACTION;3[/rbutton]
+	--<|
+
+	--:USE_AMMO_LEVER_ACTION|
+		--&
+
+	--:SHORTSWORD|
+		--=Damage1Count|1
+		--=Damage1Die|6
+		--&Damage1Type|Magical Slashing
+		--&DamageMod|[*S:dexterity_mod] + 1
+		--&ToHitMod|[*S:pb] + [*S:dexterity_mod] + 1
+		--&AttackType|DEX
+		--&WeaponType|MELEE
+		--&WeaponName|+1 Shortsword
+		--&WeaponTags|Balanced
+		--=DeflectableFlag|1
+	--^SELECT_ATTACK|
+
+	--:VAMPIRE_BITE|
+		--=Damage1Count|1
+		--=Damage1Die|4
+		--&Damage1Type|Piercing
+		--&DamageMod|[*S:constitution_mod]
+		--&ToHitMod|[*S:pb] + [*S:constitution_mod]
+		--&AttackType|CON
+		--&WeaponType|MELEE
+		--&WeaponName|Vampiric Bite
+		--&WeaponTags|Puncture
+		--=DeflectableFlag|1
+	--^SELECT_ATTACK|
+
+	--:CHECK_DISTANCE|
+		--? [$Distance] -le [$NormalRange]|SKIP_DISTANCE_WARNING
+		--? [$Distance] -gt [$LongRange]|ERROR_RANGE
+		--+WARNING|You are attacking from further ([$Distance] ft) than the Normal Range ([$NormalRange] ft) but closer than Max Range ([$LongRange] ft). Unless you have a Feature stating otherwise, factor Disadvantage into your Attack.
+		--:SKIP_DISTANCE_WARNING|
+	--<|
+
+	--:ERROR_RANGE|
+		--+FAILURE|Current Attack Distance ([$Distance] ft) further than Max Range ([$LongRange] ft). Attack Canceled.
+	--X|
+
+	--:SELECT_ATTACK|
+		--? [&SEffectString] -inc Invisible|>INVIS_EMOTE
+		--? [&SEffectString] -ninc Invisible|>NORMAL_EMOTE
+		--+ATTACK|[rbutton]Advantage::TO_HIT;2d20kh1[/rbutton]
+		--+ATTACK|[rbutton]Normal::TO_HIT;1d20[/rbutton]
+		--+ATTACK|[rbutton]Disadvantage::TO_HIT;2d20kl1[/rbutton]
+	--X|
+
+	--:INVIS_EMOTE|
+		--#emoteText|Something attacks @{target|token_name} with ...something?
+	--<|
+
+	--:NORMAL_EMOTE|
+		--#emoteText|@{selected|token_name} attacks @{target|token_name} with their [&WeaponName]
+	--<|
+
+	--:TO_HIT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--&RollString|[&reentryval] + [&ToHitMod]
+
+		--? [&SEffectString] -inc Bless|>BLESS
+		--? [&SEffectString] -inc Bane|>BANE
+		--? [&SEffectString] -inc BolsteringMagic|>BOLSTERING_MAGIC
+		--? "[&WeaponTags]" -inc "Penetrate"|>PENETRATE
+
+		--+ROLL|[&RollString]
+		--=ToHit|[&RollString]
+		--+TO HIT|[$ToHit]
+
+		--? [&TEffectString] -inc MirrorImage|>MIRROR_IMAGE
+
+		--? [$ToHit.Base] -eq 20|CRITICAL
+		--? [$ToHit.Base] -eq 1|FUMBLE
+		--:BARDIC_RETURN|
+		--? [$ToHit] -ge [$TargetAC]|HIT
+		--? [$ToHit] -lt [$TargetAC]|MISS
+	--X|
+
+	--:BLESS|
+ 		--=Bless|1d4
+ 		--+Bless|[$Bless]
+ 		--&RollString|+ + [$Bless.Raw]
+	--<|
+
+	--:BANE|
+ 		--=Bane|1d4
+ 		--+Bane|[$Bane]
+ 		--&RollString|+ - [$Bane.Raw]
+	--<|
+
+	--:BOLSTERING_MAGIC|
+ 		--=Bolster|1d3
+ 		--+Bolstering Magic|[$Bolster]
+ 		--&RollString|+ + [$Bolster.Raw]
+	--<|
+
+	--:MIRROR_IMAGE|
+		--~AfterMirror|string;after;MirrorImage:;[&TEffectString]
+		--~ImageCount|string;before;:;[&AfterMirror]
+
+		--=ImageCount|[&ImageCount]
+
+		--=MirrorImageRoll|1d20
+		--+TEST|[$MirrorImageRoll]
+		--=MirrorImageAC|10 + [*T:dexterity_mod]
+
+		--? [$ImageCount] -eq 1|1_IMAGE
+		--? [$ImageCount] -eq 2|2_IMAGE
+		--? [$ImageCount] -eq 3|3_IMAGE
+		--:MIRROR_IMAGE_RETURN|
+
+		--? [$ToHit] -ge [$MirrorImageAC]|MIRROR_IMAGE_HIT
+		--? [$ToHit] -lt [$MirrorImageAC]|MIRROR_IMAGE_MISS
+
+		--:MIRROR_IMAGE_CANCEL|
+	--<|
+
+	--:1_IMAGE|
+		--? [$MirrorImageRoll] -lt 11|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:2_IMAGE|
+		--? [$MirrorImageRoll] -lt 8|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:3_IMAGE|
+		--? [$MirrorImageRoll] -lt 6|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:MIRROR_IMAGE_HIT|
+		--+HIT|Your Attack was Directed at a Mirror Image and Hit the Image!
+
+		--~Before|string;before;:MirrorImage;[&TEffectString]
+		--~After|string;after;:;[&AfterMirror]
+
+		--=ImageCount|[$ImageCount] - 1
+
+		--? [$ImageCount] -eq 0|>REMOVE_MIRROR_IMAGE
+		--? [$ImageCount] -gt 0|>DECREMENT_MIRROR_IMAGE
+
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+
+	--:REMOVE_MIRROR_IMAGE|
+		--&TEffectString|[&Before][&After]
+	--<|
+
+	--:DECREMENT_MIRROR_IMAGE|
+		--&TEffectString|[&Before][&After]:MirrorImage:[$ImageCount.Raw]:
+	--<|
+
+	--:MIRROR_IMAGE_MISS|
+		--+MISS|Your Attack was Directed at a Mirror Image and Missed the Image!
+	--X|
+
+	--:PENETRATE|
+		--? [$TargetAC] -lt 15|SKIP_PENETRATE
+		--+PENETRATE|Penetration Active!
+		--? [&WeaponType] -eq MELEE|>MELEE_PENETRATE
+		--? [&WeaponType] -eq RANGED|>RANGED_PENETRATE
+		--:SKIP_PENETRATE|
+	--<|
+
+	--:MELEE_PENETRATE|
+		--? [$Handed] -eq 1|>ONE_HANDED_PENETRATE
+		--? [$Handed] -eq 2|>TWO_HANDED_PENETRATE
+	--<|
+
+	--:ONE_HANDED_PENETRATE|
+		--&RollString|+ + 1
+	--<|
+
+	--:TWO_HANDED_PENETRATE|
+		--&RollString|+ + 2
+	--<|
+
+	--:RANGED_PENETRATE|
+		--=HalfMod|[*S:dexterity_mod] \ 2
+		--&RollString|+ + [$HalfMod.Raw]
+	--<|
+
+	--:CRITICAL|
+		--? [&TEffectString] -inc CritNegate|NEGATE_CRIT
+		--=CritBonus|[$Damage1Count.Raw] * [$Damage1Die.Raw]
+		--&DamageMod|+ + [$CritBonus] [CRIT]
+		--=Damage2Count|[$Damage2Count] * 2
+		--:CRIT_RETURN|
+		--+CRITICAL|[rbutton]Critical Hit!::DAMAGE[/rbutton]
+		--=CritFlag|1
+		--? [$GatheredSwarmFlag] -eq 1|SKIP_SWARM_CRIT_OFFER
+		--+ABILITY|[rbutton]Gathered Swarm::GATHERED_SWARM[/rbutton]
+		--:SKIP_SWARM_CRIT_OFFER|
+		--? [&SEffectString] -inc ZephyrStrike|>OFFER_ZEPHYR_STRIKE
+	--X|
+
+	--:NEGATE_CRIT|
+		--+CRITICAL|Critical Hit!
+		--+NEGATED|Critical Negated!
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+		--? [$GatheredSwarmFlag] -eq 1|SKIP_SWARM_NEG_CRIT_OFFER
+		--+ABILITY|[rbutton]Gathered Swarm::GATHERED_SWARM[/rbutton]
+		--:SKIP_SWARM_NEG_CRIT_OFFER|
+		--? [&SEffectString] -inc ZephyrStrike|>OFFER_ZEPHYR_STRIKE
+	--X|
+
+	--:FUMBLE|
+		--+FUMBLE|Critical Failure.
+	--X|
+
+	--:HIT|
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+		--? [$GatheredSwarmFlag] -eq 1|SKIP_SWARM_HIT_OFFER
+		--+ABILITY|[rbutton]Gathered Swarm::GATHERED_SWARM[/rbutton]
+		--:SKIP_SWARM_HIT_OFFER|
+		--? [&SEffectString] -inc ZephyrStrike|>OFFER_ZEPHYR_STRIKE
+	--X|
+
+	--:OFFER_ZEPHYR_STRIKE|
+		--? [$ZephyrFlag] -eq 1|SKIP_ZEPHYR_OFFER
+		--+SPELL|[rbutton]Zephyr Strike::ZEPHYR_STRIKE[/rbutton]
+		--:SKIP_ZEPHYR_OFFER|
+	--<|
+
+	--:MISS|
+		--+MISS|Miss.
+		--? [&SEffectString] -ninc BardicInspiration|SKIP_BARDIC
+		--? [$BardicFlag] -eq 1|SKIP_BARDIC
+		--+INSPIRED|[rbutton]Use Bardic Inspiration?::BARDIC_INSPIRATION[/rbutton]
+		--:SKIP_BARDIC|
+	--X| 
+
+	--:BARDIC_INSPIRATION|
+		--? [$BardicFlag] -eq 1|ERROR_BARDIC
+		--=BardicFlag|1
+		--=Bardic|1d[$BardicDie]
+		--+Bardic Roll|[$Bardic]
+		--=ToHit|[$ToHit] + [$Bardic]
+		--+New To Hit|[$ToHit]
+
+		--~Before|string;before;BardicInspiration;[&SEffectString]
+		--~After|string;after;BardicInspiration;[&SEffectString]
+
+		--&SEffectString|[&Before][&After]
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+	--^BARDIC_RETURN|
+
+	--:GATHERED_SWARM|
+		--=GatheredSwarmFlag|1
+		--=GatheredSwarmCount|1
+		--? [$CritFlag] -eq 0|SKIP_SWARM_CRIT
+		--=GatheredSwarmCount|2
+		--:SKIP_SWARM_CRIT|
+		--=GatheredSwarmDie|6
+		--&GatheredSwarmDamageType|Piercing
+		--? [$CritFlag] -eq 1|CRIT_RETURN
+	--^HIT|
+
+	--:ZEPHYR_STRIKE|
+		--~Before|string;before;ZephyrStrike;[&SEffectString]
+		--~After|string;after;ZephyrStrike;[&SEffectString]
+
+		--&SEffectString|[&Before][&After]
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+
+		--=ZephyrFlag|1
+		--=ZephyrDamageCount|1
+		--? [$CritFlag] -lt 1|SKIP_ZEPHYR_CRIT
+		--=ZephyrDamageCount|2
+		--:SKIP_ZEPHYR_CRIT|
+		--=ZephyrDamageDie|8
+		--&ZephyrDamageType|Force
+		--? [$CritFlag] -eq 1|CRIT_RETURN
+	--^HIT|
+
+	--:DAMAGE|		
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--? [$DamageFlag] -eq 1|ERROR_DAMAGE
+		--=DamageFlag|1
+		--=Damage1|0
+		--=Damage2|0
+		--=ZephyrDamage|0
+		--=ZephyrMergedFlag|0
+		--=GatheredSwarmDamage|0
+		--=GatheredSwarmMergedFlag|0
+
+		--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+		--? [$Damage2Count] -eq 0|SkipDamage2a
+		--&Damage2String|[$Damage2Count.Raw]d[$Damage2Die.Raw]
+		--:SkipDamage2a|
+
+		--? "[&WeaponTags]" -inc "Puncture"|>ADD_PUNCTURE
+		--? "[&WeaponTags]" -inc "Balanced"|>ADD_BALANCED
+
+		--? [&SEffectString] -inc Enlarged|>ENLARGED
+		--? [&SEffectString] -inc Reduced|>REDUCED
+		--? [&TEffectString] -inc HuntersMark|>HUNTERS_MARK
+
+		--&Damage1String|+ + [&DamageMod]
+
+		--? [$ZephyrFlag] -eq 1|>CHECK_ZEPHYR_DAMAGE
+		--? [$GatheredSwarmFlag] -eq 1|>CHECK_SWARM_DAMAGE
+
+		--=Damage1|[&Damage1String]
+		--+[&Damage1Type] Damage|[$Damage1]
+		--? [$Damage2Count] -eq 0|SkipDamage2b
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] Damage|[$Damage2]
+		--:SkipDamage2b|
+
+		--? [&SEffectString] -inc Enfeebled|>ENFEEBLED
+
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>VULN_1
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>VULN_2
+		--? "[*T:npc_vulnerabilities]" -inc "[&ZephyrDamageType]"|>VULN_ZEPHYR
+		--? "[*T:npc_vulnerabilities]" -inc "[&GatheredSwarmDamageType]"|>VULN_SWARM
+		--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>RESIST_1
+		--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>RESIST_2
+		--? "[*T:npc_resistances]" -inc "[&ZephyrDamageType]"|>RESIST_ZEPHYR
+		--? "[*T:npc_resistances]" -inc "[&GatheredSwarmDamageType]"|>RESIST_SWARM
+		--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>IMMUNE_1
+		--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>IMMUNE_2
+		--? "[*T:npc_immunities]" -inc "[&ZephyrDamageType]"|>IMMUNE_ZEPHYR
+		--? "[*T:npc_immunities]" -inc "[&GatheredSwarmDamageType]"|>IMMUNE_SWARM
+
+		--? [&TEffectString] -inc Underwater|>UNDERWATER
+
+		--=TotalDamage|[$Damage1] + [$Damage2] + [$ZephyrDamage] + [$GatheredSwarmDamage]
+
+		--? "[&TEffectString]" -inc "DT"|>APPLY_DAMAGE_THRESHOLD
+
+		--+TotalDamage|[$TotalDamage]
+
+		--? [&TEffectString] -inc Retaliation|>RETALIATION
+	--^APPLY_DAMAGE|
+
+	--:ADD_PUNCTURE|
+		--&Damage1String|+!
+	--<|
+
+	--:ADD_BALANCED|
+		--&Damage1String|[&Damage1String]ro<1
+	--<|
+
+	--:CHECK_ZEPHYR_DAMAGE|
+		--? "[&Damage1Type]" -eq Force|>ADD_ZEPHYR_TO_1
+		--? "[&Damage2Type]" -eq Force|>ADD_ZEPHYR_TO_2
+		--? [$ZephyrMergedFlag] -eq 0|>GET_ZEPHYR_DAMAGE
+	--<|
+
+	--:ADD_ZEPHYR_TO_1|
+		--=ZephyrMergedFlag|1
+		--&Damage1String|+ + [$ZephyrDamageCount.Raw]d[$ZephyrDamageDie.Raw]
+	--<|
+
+	--:ADD_ZEPHYR_TO_2|
+		--=ZephyrMergedFlag|1
+		--&Damage2String|+ + [$ZephyrDamageCount.Raw]d[$ZephyrDamageDie.Raw]
+	--<|
+
+	--:GET_ZEPHYR_DAMAGE|
+		--=ZephyrDamage|[$ZephyrDamageCount.Raw]d[$ZephyrDamageDie.Raw]
+		--+ZEPHYR DAMAGE|[$ZephyrDamage] [&ZephyrDamageType]
+	--<|
+
+	--:CHECK_SWARM_DAMAGE|
+		--? "[&Damage1Type]" -eq Force|>ADD_SWARM_TO_1
+		--? "[&Damage2Type]" -eq Force|>ADD_SWARM_TO_2
+		--? [$GatheredSwarmMergedFlag] -eq 0|>GET_SWARM_DAMAGE
+	--<|
+
+	--:ADD_SWARM_TO_1|
+		--=GatheredSwarmMergedFlag|1
+		--&Damage1String|+ + [$GatheredSwarmDamageCount.Raw]d[$GatheredSwarmDamageDie.Raw]
+	--<|
+
+	--:ADD_SWARM_TO_2|
+		--=GatheredSwarmMergedFlag|1
+		--&Damage2String|+ + [$GatheredSwarmDamageCount.Raw]d[$GatheredSwarmDamageDie.Raw]
+	--<|
+
+	--:GET_SWARM_DAMAGE|
+		--=GatheredSwarmDamage|[$GatheredSwarmCount.Raw]d[$GatheredSwarmDie.Raw]
+		--+SWARM DAMAGE|[$GatheredSwarmDamage] [&GatheredSwarmDamageType]
+	--<|
+
+	--:ENLARGED|
+		--? [&AttackType] -ne STR|ENLARGED_SKIP
+		--? [$CritFlag] -eq 1|ENLARGED_CRIT
+		--&Damage1String|+ + 1d4
+		--:ENLARGED_CRIT_RETURN|
+		--:ENLARGED_SKIP|
+	--<|
+
+	--:ENLARGED_CRIT|
+		--&Damage1String|+ + 2d4
+	--^ENLARGED_CRIT_RETURN|
+
+	--:REDUCED|
+		--&Damage1String|+ - 1d4
+	--<|
+	
+	--:HUNTERS_MARK|
+		--=HuntersMarkCount|1
+		--? [$CritFlag] -eq 0|SKIP_HUNTERS_MARK_CRIT
+		--=HuntersMarkCount|2
+		--:SKIP_HUNTERS_MARK_CRIT|
+		--=HuntersMarkDie|6
+		--&Damage1String|+ + [$HuntersMarkCount.Raw]d[$HuntersMarkDie.Raw]
+	--<|
+
+	--:ENFEEBLED|
+		--? [&AttackType] -ne STR|SKIP_ENFEEBLED
+		--+ENFEEBLED|Damage Halved!
+		--=Damage1|[$Damage1] \ 2
+		--:SKIP_ENFEEBLED|
+	--<|
+
+	--:VULN_1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:VULN_2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:VULN_ZEPHYR|
+		--=ZephyrDamage|[$ZephyrDamage] * 2
+	--<|
+
+	--:VULN_SWARM|
+		--=GatheredSwarmDamage|[$GatheredSwarmDamage] * 2
+	--<|
+
+	--:RESIST_1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:RESIST_2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:RESIST_ZEPHYR|
+		--=ZephyrDamage|[$ZephyrDamage] \ 2
+	--<|
+
+	--:RESIST_SWARM|
+		--=GatheredSwarmDamage|[$GatheredSwarmDamage] \ 2
+	--<|
+
+	--:IMMUNE_1|
+		--=Damage1|0
+	--<|
+
+	--:IMMUNE_2|
+		--=Damage2|0
+	--<|
+
+	--:IMMUNE_ZEPHYR|
+		--=ZephyrDamage|0
+	--<|
+
+	--:IMMUNE_SWARM|
+		--=GatheredSwarmDamage|0
+	--<|
+
+	--:UNDERWATER|
+		--? "[*T:npc_resistances]" -inc "Fire"|SKIP_UNDERWATER
+		--? [&Damage1Type] -eq Fire|>RESIST_1
+		--? [&Damage2Type] -eq Fire|>RESIST_2
+		--:SKIP_UNDERWATER|
+	--<|
+
+	--:APPLY_DAMAGE_THRESHOLD|
+		--+DT|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:APPLY_DAMAGE|
+		--? @{target|bar3} -gt 0|APPLY_TEMP_DAMAGE
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_DAMAGE|
+		--? @{target|bar3} -lt [$TotalDamage]|APPLY_TEMP_PARTIAL
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_PARTIAL|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_TOKEN|
+
+	--:MARK_TOKEN|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_TOKEN_DEAD
+	--X|
+
+  	--:MARK_TOKEN_RED|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#red
+  	--X|
+
+  	--:MARK_TOKEN_DEAD|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#dead|-red
+  	--X|
+
+  	--:ERROR_BARDIC|
+  		--+ERROR|You have already used Bardic Inspiration!
+  	--X|
+
+  	--:ERROR_DAMAGE|
+  		--+ERROR|You have already applied Damage!
+  	--X|
+
+  	--:RETALIATION|
+  		--=RetaliationFlag|1
+
+  		--~AfterMark|string;after;Retaliation:;[&TEffectString]
+  		--~AfterMark2|string;after;:;[&AfterMark]
+  		--~RetaliationDamageString|string;before;:;[&AfterMark]
+  		--~RetaliationDamageType|string;before;:;[&AfterMark2]
+
+  		--=RetaliationDamage|[&RetaliationDamageString]
+  		
+  		--? [&TEffectString] -inc TempHealthRetaliation|>TEMP_HEALTH_RETALIATION
+  		--? [&TEffectString] -inc MeleeRetaliation|>MELEE_RETALIATION
+  		--? [&TEffectString] -inc DistanceRetaliation|>DISTANCE_RETALITION
+
+  		--? [$RetaliationFlag] -eq 0|SKIP_RETALIATION
+
+		--? "[*S:npc_vulnerabilities]" -inc "[&RetaliationDamageType]"|>VULN_RETLATIATION
+		--? "[*S:npc_resistances]" -inc "[&RetaliationDamageType]"|>RESIST_RETLATIATION
+		--? "[*S:npc_immunities]" -inc "[&RetaliationDamageType]"|>IMMUNE_RETLATIATION
+
+		--+RETALIATION|[$RetaliationDamage] [&RetaliationDamageType] Damage
+
+		--? [*S:t-bar3_value] -eq 0|>RETALIATION_APPLY_DAMAGE
+		--? [*S:t-bar3_value] -le [$RetaliationDamage]|>RETALIATION_APPLY_PARTIAL_DAMAGE
+		--? [*S:t-bar3_value] -gt [$RetaliationDamage]|>RETALIATION_APPLY_TEMP_DAMAGE
+
+		--:SKIP_RETALIATION|
+  	--<|
+
+  	--:TEMP_HEALTH_RETALIATION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+  		--? [$RetaliationDamage] -ge [*T:t-bar3_value]|>TEMP_HEALTH_RETALIATION_REMOVE
+  	--<|
+
+  	--:MELEE_RETALIATION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+  	--<|
+
+  	--:DISTANCE_RETALITION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+
+  		--~AfterMark3|string;after;:;[&AfterMark2]
+  		--~MaxDistance|string;before;:;[&AfterMark3]
+  		--=MaxDistance|[&MaxDistance]
+
+  		--? [$Distance] -gt [$MaxDistance]|>INVALID_RETALIATION
+  	--<|
+
+	--:VULN_RETLATIATION|
+		--=RetaliationDamage|[$RetaliationDamage] * 2
+	--<|
+
+	--:RESIST_RETLATIATION|
+		--=RetaliationDamage|[$RetaliationDamage] \ 2
+	--<|
+
+	--:IMMUNE_RETLATIATION|
+		--=RetaliationDamage|0
+	--<|
+
+	--:INVALID_RETALIATION|
+		--=RetaliationFlag|0
+	--<|
+
+	--:TEMP_HEALTH_RETALIATION_REMOVE|
+		--+TEST|REMOVE
+		--~BeforeRetaliation|string;before;TempHealthRetaliation;[&TEffectString]
+		--~AfterRetaliation|string;after;:;[&AfterMark2]
+
+		--&TEffectString|[&BeforeRetaliation][&AfterRetaliation]
+
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString]
+	--<|
+
+	--:RETALIATION_APPLY_DAMAGE|
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|-[$RetaliationDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:RETALIATION_APPLY_PARTIAL_DAMAGE|
+		--=RemainderDamage|[$RetaliationDamage] - [*S:t-bar3_value]
+		--@alter|_target|@{selected|token_id} _bar|3 _amount|-[*S:t-bar3_value]
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:RETALIATION_APPLY_TEMP_DAMAGE|
+		--@alter|_target|@{selected|token_id} _bar|3 _amount|-[$RetaliationDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:MARK_SOURCE_TOKEN|
+		--=HalfHP|[*S:hp^] \ 2
+		--=HPTotal|[*S:t-bar1_value] + [*S:t-bar3_value]
+		--=EstFinalHP|[$HPTotal] - [$RetaliationDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_SOURCE_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_SOURCE_TOKEN_DEAD
+	--<|
+
+  	--:MARK_SOURCE_TOKEN_RED|
+  		--@token-mod| _ids [*S:t-id] _set statusmarkers#red
+  	--<|
+
+  	--:MARK_SOURCE_TOKEN_DEAD|
+  		--@token-mod| _ids [*S:t-id] _set statusmarkers#dead|-red
+  	--<|
+}}

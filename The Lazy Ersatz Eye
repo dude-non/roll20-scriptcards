@@ -1,0 +1,62 @@
+!scriptcard{{
+	--#title|The Lazy Ersatz Eye
+	--#sourceToken|@{selected|token_id}
+
+	--+Charges|[*S:other_resource]
+	--+SPELLS|Level 1
+	--+SPELL|Sleep [rbutton]1::SLEEP;1[/rbutton] [rbutton]2::SLEEP;2[/rbutton] [rbutton]3::SLEEP;3[/rbutton] [rbutton]4::SLEEP;4[/rbutton] [rbutton]5::SLEEP;5[/rbutton]
+	--+SPELL|Detect Magic [rbutton]1::DETECT_MAGIC;1[/rbutton]
+	--+SPELLS|Level 2
+	--+SPELL|Blindness [rbutton]2::BLINDNESS;2[/rbutton] [rbutton]3::BLINDNESS;3[/rbutton] [rbutton]4::BLINDNESS;4[/rbutton] [rbutton]5::BLINDNESS;5[/rbutton]
+	--+SPELL|Locate Object [rbutton]2::LOCATE_OBJECT;2[/rbutton] [rbutton]
+
+	--X|
+
+	--:SLEEP|
+		--=Level|[&reentryval]
+		--? [$Charges] -lt [$Level]|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _other_resource|-[$Level] _silent
+		--=Bonus|[$Level] - 1
+		--=DieCount|5 + [$Bonus]
+		--=HP|[$DieCount]d8
+		--+COMPONENTS|VS
+		--+EFFECT|This spell sends Creatures into a magical slumber. Roll 5d8, the total is how many Hit Points of Creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current Hit Points (ignoring Unconscious creatures). Starting with the creature that has the lowest current Hit Points, each creature affected by this spell falls Unconscious until the spell ends, the sleeper takes damage, or someone uses an Action to shake or slap the sleeper awake. Subtract each creature's Hit Points from the total before Moving On to the creature with the next lowest Hit Points. A creature's Hit Points must be equal to or less than the remaining total for that creature to be affected. Undead and Creatures immune to being Charmed aren't affected by this spell.
+		--+HP|[$HP]
+		--@forselected+|Spawn _name|Sleep _qty|1 _size|9,9 _targets|1 _order|back
+	--X|
+
+	--:DETECT_MAGIC|
+		--=Level|[&reentryval]
+		--? [$Charges] -lt [$Level]|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _other_resource|-[$Level] _silent
+		--+COMPONENTS|VS
+		--+EFFECT|For the Duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your Action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its school of magic, if any. The spell can penetrate most barriers, but is blocked by 1 foot of stone, 1 inch of Common metal, a thin sheet of lead, or 3 feet of wood or dirt.
+		--+DURATION|10 min (Concentration)
+		--+RANGE|30 ft
+	--X|
+
+	--:BLINDNESS|
+		--=Level|[&reentryval]
+		--? [$Charges] -lt [$Level]|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _other_resource|-[$Level] _silent
+		--=Targets|[$Level] - 1
+		--+COMPONENTS|V
+		--+EFFECT|You can blind [$Targets]. Choose creatures within range to make a Constitution saving throw. If it fails, the target is blinded for the duration. At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends.
+		--+DURATION|1 minute
+		--+RANGE|30 ft
+	--X|
+
+	--:LOCATE_OBJECT|
+		--=Level|[&reentryval]
+		--? [$Charges] -lt [$Level]|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _other_resource|-[$Level] _silent
+		--+COMPONENTS|VS
+		--+EFFECT|Describe or name an object that is familiar to you. You sense the direction to the object’s location, as long as that object is within 1,000 feet of you. If the object is in motion, you know the direction of its movement. The spell can locate a specific object known to you, as long as you have seen it up close—within 30 feet—at least once. Alternatively, the spell can locate the nearest object of a particular kind, such as a certain kind of apparel, jewelry, furniture, tool, or weapon. This spell can’t locate an object if any thickness of lead, even a thin sheet, blocks a direct path between you and the object.
+		--+DURATION|10 min (Concentration)
+		--+RANGE|1000 ft
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to Cast!
+	--X|
+}}

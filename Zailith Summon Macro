@@ -1,0 +1,90 @@
+!scriptcard{{
+	--#title|Zailith Summons Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+SPELLS|Cantrips
+	--+CANTRIP|[rbutton]Mage Hand::MAGE_HAND[/rbutton]
+	--+SPELLS|Level 1
+	--+SPELL|Unseen Servant * [rbutton]Ritual::UNSEEN_SERVANT;r[/rbutton] [rbutton]1::UNSEEN_SERVANT;1[/rbutton] [rbutton]2::UNSEEN_SERVANT;2[/rbutton] [rbutton]3::UNSEEN_SERVANT;3[/rbutton]
+	--+SPELL|Faerie Fire * [rbutton]Bandore::FAERIE_FIRE;b[/rbutton] [rbutton]1::FAERIE_FIRE;1[/rbutton] [rbutton]2::FAERIE_FIRE;2[/rbutton] [rbutton]3::FAERIE_FIRE;3[/rbutton]
+	--+SPELL|Entangle * [rbutton]Bandore::ENTANGLE;b[/rbutton] [rbutton]1::ENTANGLE;1[/rbutton] [rbutton]2::ENTANGLE;2[/rbutton] [rbutton]3::ENTANGLE;3[/rbutton]
+	--+SPELLS|Level 2
+	--+SPELL|Shatter [rbutton]2::SHATTER;2[/rbutton] [rbutton]3::SHATTER;3[/rbutton]
+	--+SPELL|Darkness * [rbutton]Tiefling::DARKNESS;t[/rbutton] [rbutton]2::DARKNESS;2[/rbutton] [rbutton]3::DARKNESS;3[/rbutton]
+	--+SPELL|Spiritual Weapon  [rbutton]2::SPIRITUAL_WEAPON;2[/rbutton] [rbutton]3::SPIRITUAL_WEAPON;3[/rbutton]
+	--+SPELLS|Level 3
+	--+SPELL|Aura of Vitality * [rbutton]3::AURA_OF_VITALITY;3[/rbutton]
+	--+NOTE|Spells marked with an * have NO LEVEL SCALING, so even though a Higher Level may be offered, it will grant NO BENEFIT.
+	--X|
+
+	--:MAGE_HAND|
+		--+CANTRIP|Mage Hand
+		--@forselected+|Spawn _name|Mage Hand _qty|1 _size|1,1 _offset|0,-1
+	--X|
+
+	--:UNSEEN_SERVANT|
+		--? [&reentryval] -eq r|SKIP_LEVEL_UNSEEN_SERVANT
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--:SKIP_LEVEL_UNSEEN_SERVANT|
+		--+HP|1
+		--+AC|10
+		--+STR|2
+		--@forselected+|Spawn _name|Unseen Servant _qty|1 _size|1,1 _offset|0,-1
+	--X|
+
+	--:FAERIE_FIRE|
+		--? [&reentryval] -eq b|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Faerie Fire _qty|1 _size|4,4 _targets|1 _order|back
+	--X|
+
+	--:ENTANGLE|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Entangle _qty|1 _size|4,4 _targets|1 _order|back
+	--X|
+
+	--:SHATTER|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Shatter _qty|1 _size|4,4 _targets|1 _bar2|[$Level] _order|back
+	--X|
+
+	--:DARKNESS|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Darkness _qty|1 _size|4,4 _targets|1 _order|back
+	--X|
+
+	--:SPIRITUAL_WEAPON|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]		
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Spiritual Weapon _qty|1 _size|1,1 _offset|0,-1 _targets|1 _bar2|[$Level]
+	--X|
+
+	--:AURA_OF_VITALITY|
+		--=Level|[&reentryval]
+		--+LEVEL|[$Level]	
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@forselected+|Spawn _name|Aura of Vitality _qty|1 _size|13,13 _bar2|10 _order|back
+	--X|
+
+	--:NOT_ENOUGH_SLOTS
+		--+ERROR|Not Enough Level [$Level] Slots to Cast!
+	--X|
+}}

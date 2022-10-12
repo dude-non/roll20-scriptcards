@@ -1,0 +1,70 @@
+!scriptcard{{
+	--#title|Ring of Shooting Stars
+	--#sourceToken|@{selected|token_id}
+
+	--=Charges|[*S:repeating_resource_$3_resource_right]
+	--+CHARGES|[$Charges] / 6
+
+	--+ABILITIES|Abilities
+	--+ABILITY|Ball Lightning - 2 Charges [rbutton]1::BALL_LIGHTNING;1[/rbutton] [rbutton]2::BALL_LIGHTNING;2[/rbutton] [rbutton]3::BALL_LIGHTNING;3[/rbutton] [rbutton]4::BALL_LIGHTNING;4[/rbutton]
+	--+ABILITY|Shooting Stars - X Charges [rbutton]1::SHOOTING_STARS;1[/rbutton] [rbutton]2::SHOOTING_STARS;2[/rbutton] [rbutton]3::SHOOTING_STARS;3[/rbutton]
+	--+SPELLS|Spells
+	--+SPELL|[rbutton]Faerie Fire::FAERIE_FIRE[/rbutton]
+	--X|
+
+	--:BALL_LIGHTNING|
+		--? [*S:repeating_resource_$3_resource_right] -lt 2|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$3_resource_right|-2 _silent
+		--=Orbs|[&reentryval]
+		--+ABILITY|Ball Lighting - [$Orbs] Orb(s)
+
+		--&Damage|6d8
+		--? [$Orbs] -lt 2|SKIP_ORBS
+		--&Damage|5d4
+		--? [$Orbs] -lt 3|SKIP_ORBS
+		--&Damage|3d4
+		--? [$Orbs] -lt 4|SKIP_ORBS
+		--&Damage|2d4
+		--:SKIP_ORBS|
+
+		--+EFFECT|When a Creature other than you comes within 5ft of an Orb, the Orb discharges Lightning at the Creature and disappears. The damage dealt is dependent on how many you conjure.
+		--+RANGE|120ft
+		--+DURATION|1 minute (Concentration)
+		--+LIGHT|30ft Dim Light
+		--+SAVE|15 DEX
+		--+SPECIAL ACTION|As a Bonus Action, you may move each Orb up to 30ft, but no farther than the maximum range.
+		--+CHARGES|2	
+		--+DAMAGE|[&Damage] Lightning
+
+		--@forselected+|Spawn _name|Ball Lightning _qty|[$Orbs] _size|1,1 _placement|surround _bar2|[$Damage]
+	--X|
+
+	--:SHOOTING_STARS|
+		--=Stars|[&reentryval]
+		--? [*S:repeating_resource_$3_resource_right] -lt [$Stars]|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$3_resource_right|-[$Stars] _silent
+
+		--+EFFECT|For every Charge you expend, you launch a glowing mote of light from the ring at a point you can see within 60ft of you. Each Creature within a 15ft cube originating from that point is showered in sparks and takes damage.
+		--+RANGE|60ft
+		--+DURATION|Instantaneous
+		--+SAVE|15 DEX
+		--+CHARGES|[$Stars]
+		--+DAMAGE|5d4 Fire
+
+		--@forselected+|Spawn _name|Shooting Stars _size|3,3 _targets|[$Stars] _bar2|[*S:spell_save_dc]
+	--X|
+
+	--+FAERIE_FIRE|
+		--? [*S:repeating_resource_$3_resource_right] -lt 1|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$3_resource_right|-1 _silent
+
+		--+SPELL|Faerie Fire
+		--+CHARGES|1
+
+		--@forselected+|Spawn _name|Faerie Fire _size|4,4 _targets|1 _bar2|[*S:spell_save_dc]
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to Use that Ability!
+	--X|
+}}

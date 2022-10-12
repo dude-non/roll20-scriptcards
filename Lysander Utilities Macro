@@ -1,0 +1,95 @@
+!scriptcard{{
+	--#title|Lysander Utilities Macro
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--+SPELL|Cure Wounds [rbutton]GotMD::CURE_WOUNDS;g[/rbutton] [rbutton]1::CURE_WOUNDS;1[/rbutton] [rbutton]2::CURE_WOUNDS;2[/rbutton] [rbutton]3::CURE_WOUNDS;3[/rbutton]
+	--+SPELL|Enlarge [rbutton]2::ENLARGE;2[/rbutton] [rbutton]3::ENLARGE;3[/rbutton]
+	--+SPELL|Reduce [rbutton]2::REDUCE;2[/rbutton] [rbutton]3::REDUCE;3[/rbutton]
+	--+SPELL|[rbutton]End Enlarge/Reduce::END_ENLARGE_REDUCE[/rbutton]
+
+	--X|
+
+	--:CURE_WOUNDS|
+		--&Data|[&reentryval]
+		--? [&Data] -eq g|>GotMD
+		--? [&Data] -ne g|>LEVELED
+		--=HP|[$Level]d8
+		--+HEALING|[$HP] HP
+		--@alter|_target|@{target|token_id} _bar|1 _amount|[$HP]
+	-X|
+
+	--:GotMD|
+		--? [*S:repeating_resource_$0_resource_left] -lt 1|NOT_ENOUGH_CHARGES
+		--=Level|1
+	--<|
+
+	--:LEVELED|
+		--=Level|[&Data]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+	--<|
+
+	--:ENLARGE|
+		--&EffectString|@{target|bar2}
+		--? "[&EffectString]" -inc "Enlarge"|ALREADY_AFFECTED
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:character_id] _lvl[$Level]_slots_expended|-1 _silent
+		--+ENLARGE|The Creature is Enlarged!
+		--+ENLARGE|The target's size is doubled in all dimensions!
+		--&EffectString|+Enlarge
+		--@token-mod| _ids [*T:t-id] _set scale|+1u bar2_value|[&EffectString] _ignore-selected
+	--X|
+
+	--:REDUCE|
+		--&EffectString|@{target|bar2}
+		--? "[&EffectString]" -inc "Reduce"|ALREADY_AFFECTED
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:character_id] _lvl[$Level]_slots_expended|-1 _silent
+		--+REDUCE|The Creature is Reduced!
+		--+REDUCE|The target's size is halved in all dimensions!
+		--&EffectString|+Reduce
+		--@token-mod| _ids [*T:t-id] _set scale|+1u bar2_value|[&EffectString] _ignore-selected
+	--X|
+
+	--:END_ENLARGE_REDUCE|
+		--&EffectString|@{target|bar2}
+		--? "[&EffectString]" -inc "Enlarge"|>REMOVE_ENLARGE
+		--? "[&EffectString]" -inc "Reduce"|>REMOVE_REDUCE
+	--X|
+
+	--:REMOVE_ENLARGE|
+		--+ENLARGE|Ending Enlarge!
+
+		--~Before|string;before;Enlarge;[&EffectString]
+		--~After|string;after;Enlarge;[&EffectString]
+
+		--&EffectString|[&Before][&After]
+	 
+		--@token-mod| _ids [*T:t-id] _set scale|-1u bar2_value|[&EffectString] _ignore-selected
+	--<|
+
+	--:REMOVE_REDUCE|
+		--+REDUCE|Ending Reduce!
+
+		--~Before|string;before;Reduce;[&EffectString]
+		--~After|string;after;Reduce;[&EffectString]
+
+		--&EffectString|[&Before][&After]
+
+		--@token-mod| _ids [*T:t-id] _set scale|+1u bar2_value|[&EffectString] _ignore-selected
+	--<|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to use that Ability!
+	--X|
+
+	--:NOT_ENOUGH_SLOTS|
+		--+ERROR|Not Enough Level [$Level] Slots to Cast!
+	--X|
+
+	--:ALREADY_AFFECTED|
+		--+ERROR|The target creature is already affected!
+	--X|
+}}

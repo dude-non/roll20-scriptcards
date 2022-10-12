@@ -1,0 +1,53 @@
+!scriptcard{{
+	--#title|Zailith Utilities Macro
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--+ABILITIES|Abilities
+	--+ABILITY|[rbutton]Bardic Inspiration::BARDIC_INSPIRATION[/rbutton]
+	--+SPELLS|Cantrips
+	--+CANTRIP|[rbutton]Mending::MENDING[/rbutton]
+	--+SPELLS|Level 1
+	--+SPELL|Cure Wounds [rbutton]1::CURE_WOUNDS;1[/rbutton] [rbutton]2::CURE_WOUNDS;2[/rbutton] [rbutton]3::CURE_WOUNDS;3[/rbutton]
+
+	--X|
+
+	--:BARDIC_INSPIRATION|
+		--? [*S:class_resource] -lt 1|NOT_ENOUGH_CHARGES
+		--&EffectString|[*T:t-bar2]
+		--=BardicDie|[*S:BardicInspirationDie]
+		--&EffectString|+BardicInspiration
+		--+BARDIC INSP|Bardic Inspiration Lasts 10 minutes
+		--+BARDIC INSP|1d[$BardicDie]
+		--+BARDIC INSP|For attacks, you will be prompted to use Bardic Inspiration if you miss if you have it. If maps are changed, or you use Bardic Inspiration for something other than an attack, make sure the DM knows so they can update your token accordingly.
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&EffectString] _ignore-selected
+	--X|
+
+	--:MENDING|
+		--? "[*T:npc_type]" -ninc "Construct"|ERROR_NOT_CONSTRUCT
+		--=Healing|2d6
+		--+HP|[$Healing]
+		--@alter|_target|@{target|token_id} _bar|1 _amount|[$Healing]
+	--X|
+
+	--:CURE_WOUNDS|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--=Healing|[$Level]d8 + [*S:charisma_mod]
+		--+HP|[$Healing]
+		--@alter|_target|@{target|token_id} _bar|1 _amount|[$Healing]
+	--X|
+
+	--:ERROR_NOT_CONSTRUCT|
+		--+ERROR|Creature is NOT a Construct!
+	--X|
+
+	--:NOT_ENOUGH_SLOTS|
+		--+ERROR|Not Enough Level [$Level] Slots to Cast!
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to Use that Ability!
+	--X|
+}}

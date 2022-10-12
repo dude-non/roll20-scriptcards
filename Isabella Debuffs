@@ -1,0 +1,42 @@
+!scriptcard{{
+	--#title|Isabella Debuffs
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--+SPELLS|Level 1
+	--+SPELL|Hunter's Mark [rbutton]1::HUNTERS_MARK;1[/rbutton] [rbutton]2::HUNTERS_MARK;2[/rbutton] [rbutton]Transfer::HUNTERS_MARK;t[/rbutton]
+
+	--X|
+
+	--:HUNTERS_MARK|
+		--? [&reentryval] -eq t|HUNTERS_MARK_TRANSFER
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+
+		--&Duration|1 hour
+		--? [$Level] -lt 3|SKIP_EXTRA_DURATION
+		--&Duration|8 hours
+		--? [$Level] -lt 5|SKIP_EXTRA_DURATION
+		--&Duration|24 hours
+		--:SKIP_EXTRA_DURATION|
+
+		--+EFFECT|You deal an extra 1d6 damage to the target whenever you hit it with a weapon attack, and you have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it. If the target drops to 0 hit points before this spell ends, you can use a bonus action on a subsequent turn of yours to mark a new creature.
+		--+DURATION|[&Duration] Concentration
+
+		--&TEffectString|[*T:t-bar2_value]HuntersMark
+
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString] _ignore-selected
+	--X|
+
+	--:HUNTERS_MARK_TRANSFER|
+		--+TRANSFER|Hunter's Mark transferred to the new Target!
+
+		--&TEffectString|[*T:t-bar2_value]HuntersMark
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString] _ignore-selected
+	--X|
+	
+	--:NOT_ENOUGH_SLOTS|
+		--+FAILURE|Not Enough Level [$Level] Slots to Cast!
+	--X|
+}}

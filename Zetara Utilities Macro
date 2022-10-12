@@ -1,0 +1,37 @@
+!scriptcard{{
+	--#title|Zetara Utilities Macro
+	--#sourceToken|@{selected|token_id}
+
+	--=Level|1
+	--? [*S:level] -lt 3|SKIP_EXTRA_LEVELS
+	--=Level|2
+	--? [*S:level] -lt 5|SKIP_EXTRA_LEVELS
+	--=Level|3
+	--? [*S:level] -lt 7|SKIP_EXTRA_LEVELS
+	--=Level|4
+	--? [*S:level] -lt 9|SKIP_EXTRA_LEVELS
+	--=Level|5
+	--:SKIP_EXTRA_LEVELS|
+
+	--+SPELLS|Levell 1
+	--+SPELL|[rbutton]Armor of Agathys::ARMOR_OF_AGATHYS[/rbutton]
+
+	--X|
+
+	--:ARMOR_OF_AGATHYS|
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|ERROR_NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--=TempHP|[$Level] * 5
+		--=Damage|[$Level] * 5
+		--+TEMP HP|[$TempHP]
+		--+RETALIATION DAMAGE|[$Damage] Cold Damage
+		--&EffectString|[*S:t-bar2_value]:TempHealthRetaliation:[$Damage.Raw]:Cold:
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&EffectString]
+		--? [*S:t-bar3_value] -gt [$TempHP]|FAILURE
+		--@token-mod| _ids [*S:t-id] _set bar3_value|[$TempHP]
+	--X|
+
+	--:FAILURE|
+		--+ERROR|You already have more than [$TempHP] Temporary Hit Points!
+	--X|
+}}

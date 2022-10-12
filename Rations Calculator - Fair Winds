@@ -1,0 +1,39 @@
+!scriptcard{{
+	--#title|Rations Calculator
+
+	--=Fished|0
+
+	--+FISHING|[rbutton]Gozen::GOZEN_FISH[/rbutton]
+	--+FISHING|[rbutton]Lysander::LYSANDER_FISH[/rbutton]
+	--+FISHING|[rbutton]Zailith::ZAILITH_FISH[/rbutton]
+	--+FISHING|[rbutton]Zetara::ZETARA_FISH[/rbutton]
+	--+FISHING|[rbutton]Marge::MARGE_FISH[/rbutton]
+	--+FISHING|[rbutton]Sritti::SRITTI_FISH[/rbutton]
+	--+FISHING|[rbutton]Jade::JADE_FISH[/rbutton]
+	--+FISHING|[rbutton]Monozha::MONOZHA_FISH[/rbutton]
+	--+CALC|[rbutton]Complete::COMPLETE[/rbutton]
+
+
+	--:COMPLETE|
+		--=Current|@{Fair Winds|other_resource}
+		--=Crew|@{Fair Winds|class_resource}
+		--=Passengers|@{Fair Winds|repeating_resource_$1_resource_left}
+		--=Consumed|[$Crew] + [$Passengers] - [$Fished]
+		--=Remaining|[$Current] - [$Consumed]
+		--+INITIAL|[$Current] Rations
+		--+CREW|[$Crew] people
+		--+PASSENGERS|[$Passengers] people
+		--+FISHED|[$Fished] Fish
+		--+CONSUME|[$Consumed] Rations
+		--? [$Remaining] -lt 1|DEPLETED
+		--+REMAINING|[$Remaining] Rations
+		--@modattr| _charid @{Fair Winds|character_id} _other_resource|-[$Consumed] _silent
+	--X|
+
+	--:DEPLETED|
+		--+DEPLETED|Rations Depleted!
+		--=Short|[$Remaining] * -1
+		--+SHORT|[$Short] Rations
+		--+WARNING|Find food soon! Lest the worst come to pass...
+	--X|
+}}

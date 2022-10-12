@@ -1,0 +1,45 @@
+!scriptcard{{
+	--#title|Isabella Abilities Macro
+	--#sourceToken|@{selected|token_id}
+
+	--? [*S:repeating_resource_$1_resource_left] -lt 1|SKIP_SECOND_WIND
+	--+ABILITY|[rbutton]Second Wind::SECOND_WIND[/rbutton]
+	--:SKIP_SECOND_WIND|
+	--? [*S:repeating_resource_$0_resource_right] -lt 1|SKIP_ACTION_SURGE
+	--+ABILITY|[rbutton]Action Surge::ACTION_SURGE[/rbutton]
+	--:SKIP_ACTION_SURGE|
+
+	--+SPELLS|Level 1
+	--+SPELL|Zephyr Strike [rbutton]1::ZEPHYR_STRIKE;1[/rbutton] [rbutton]2::ZEPHYR_STRIKE;2[/rbutton]
+	--X|
+
+	--:SECOND_WIND|
+		--@modattr| _charid [*S:id] _repeating_resource_$1_resource_left|-1 _silent
+		--=Healing|1d10 + [*S:multiclass1_lvl]
+		--+HEALING|[$Healing]
+		--@alter|_target|[*S:t-id] _bar|1 _amount|[$Healing]
+	--X|
+
+	--:ACTION_SURGE|
+		--@modattr| _charid [*S:id] _repeating_resource_$0_resource_right|-1 _silent
+		--+ACTION SURGE|You get an additional Action!
+	--X|
+
+	--:ZEPHYR_STRIKE|
+		--=Level|[&reentryval]
+
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+
+		--+EFFECT|You move like the wind. For the duration, your movement doesn’t provoke opportunity attacks. Once before the spell ends, you can give yourself advantage on one weapon attack roll on your turn. That attack deals an extra 1d8 force damage on a hit. Whether you hit or miss, your walking speed increases by 30 feet until the end of that turn.
+		--+DURATION|1 minute Concentration
+
+		--&SEffectString|[*S:t-bar2_value]ZephyrStrike
+
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+	--X|
+	
+	--:NOT_ENOUGH_SLOTS|
+		--+FAILURE|Not Enough Level [$Level] Slots to Cast!
+	--X|
+}}

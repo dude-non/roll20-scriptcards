@@ -1,0 +1,22 @@
+!scriptcard{{
+	--#title|Nin Utilities
+	--#sourceToken|@{selected|token_id}
+
+	--+ABILITY|[rbutton]Stormbringer Storm's Nimbus::STORMS_NIMBUS[/rbutton]
+
+	--X|
+
+	--:STORMS_NIMBUS|
+		--=Charges|[*S:other_resource]
+		--? [$Charges] -lt 4|NOT_ENOUGH_CHARGES
+
+		--+ABILITY|Stormbringer Storm's Nimbus
+		--+EFFECT|Holding *Stormbringer* forward, you summon a small Cumulonimbus under your feet. You gain a Flying Speed of 60ft for the next minute. You can choose to step off the Cumulonimbus as a Bonus Action, causing the Cumulonimbus to disappear. If you are still aloft when the minute ends, the Cumulonimbus descends at a rate of 60ft per round until it reaches the ground and disappears. The Cumulonimbus has a weight limit of 500lbs. If at any point the Cumulonimbus is supporting more than 500lbs, it collapses under the weight and disappears.
+
+		--@modattr| _charid [*S:id] _other_resource|-4 _silent
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+FAILURE|Not Enough Charges to Use that Ability!
+	--X|
+}}

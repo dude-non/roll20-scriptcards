@@ -1,0 +1,36 @@
+!scriptcard{{
+	--#title|Nin Summon Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+ABILITIES|Ability
+	--+ABILITY|[rbutton]Summon Wild Magic Spirit::SUMMON_RAGE_SPIRIT[/rbutton]
+	--+ABILITY|[rbutton]Stormbringer Call Lightning::CALL_LIGHTNING[/rbutton]
+	--X|
+
+	--:SUMMON_RAGE_SPIRIT|
+		--+ABILITY|Summon Wild Magic Spirit
+		--@forselected+|Spawn _name|Wild Magic Spirit _qty|1 _size|1,1 _offset|0,-1 _targets|1 
+	--X|
+
+	--:CALL_LIGHTNING|
+		--=Charges|[*S:other_resource]
+		--? [$Charges] -lt 3|NOT_ENOUGH_CHARGES
+		--+ABILITY|Stormbringer Call Lightning
+		--+CHARGES USED|[$Charges]
+		--@setattr| _charid [*S:id] _other_resource|0 _silent
+		--+IS STORMING?|[rbutton]Yes::CALL_LIGHTNING_QUERY;y[/rbutton] [rbutton]No::CALL_LIGHTNING_QUERY;n[/rbutton]
+	--X|
+
+	--:CALL_LIGHTNING_QUERY|
+		--? [&reentryval] -eq y|>STORMING
+		--@forselected+|Spawn _name|Call Lightning _qty|1 _size|1,1 _offset|0,-1 _targets|1 _bar2|[$Charges]
+	--X|
+
+	--:STORMING|
+		--=Charges|[$Charges] + 1
+	--<|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+FAILURE|Not Enough Charges to Use that Ability!
+	--X|
+}}

@@ -1,0 +1,36 @@
+!scriptcard{{
+	--#title|Zetara Summons Macro
+	--#sourceToken|@{selected|token_id}
+
+	--=Level|1
+	--? [*S:level] -lt 3|SKIP_EXTRA_LEVELS
+	--=Level|2
+	--? [*S:level] -lt 5|SKIP_EXTRA_LEVELS
+	--=Level|3
+	--? [*S:level] -lt 7|SKIP_EXTRA_LEVELS
+	--=Level|4
+	--? [*S:level] -lt 9|SKIP_EXTRA_LEVELS
+	--=Level|5
+	--:SKIP_EXTRA_LEVELS|
+
+	--+ABILITIES|Abilities
+	--+ABILITY|[rbutton]Summon Tentacle::SUMMON_TENTACLE[/rbutton]
+	--+SPELLS|Level 1
+	--+SPELL|[rbutton]Thunderwave::THUNDERWAVE[/rbutton]
+
+	--X|
+
+	--:SUMMON_TENTACLE|
+		--? [*S:class_resource] -lt 1|ERROR_NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _class_resource|-1 _silent
+		--+SUMMON|Tentacle Summoned!
+		--@forselected+|Spawn _name|Purple Tentacle _qty|1 _size|1,1 _offset|0,-1 _bar1|10
+	--X|
+
+	--:THUNDERWAVE|
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|ERROR_NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--+LEVEL|[$Level]
+		--@forselected+|Spawn _name|Thunderwave _qty|1 _size|3,3 _offset|0,-1 _bar2|[$Level] _order|back
+	--X|
+}}

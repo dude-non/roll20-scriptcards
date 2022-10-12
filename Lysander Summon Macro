@@ -1,0 +1,209 @@
+!scriptcard{{
+	--#title|Lysander Summons
+	--#sourceToken|@{selected|token_id}
+
+	--+SPELLS|Cantrips
+	--+CANTRIP|[rbutton]Mage Hand::MAGE_HAND[/rbutton]
+	--+SPELLS|Level 1
+	--+SPELL|Earth Tremor [rbutton]1::EARTH_TREMOR;1[/rbutton] [rbutton]2::EARTH_TREMOR;2[/rbutton] [rbutton]3::EARTH_TREMOR;3[/rbutton] 
+	--+SPELL|Frost Fingers [rbutton]1::FROST_FINGERS;1[/rbutton] [rbutton]2::FROST_FINGERS;2[/rbutton] [rbutton]3::FROST_FINGERS;3[/rbutton]
+	--+SPELL|Sleep [rbutton]1::SLEEP;1[/rbutton] [rbutton]2::SLEEP;2[/rbutton] [rbutton]3::SLEEP;3[/rbutton]
+	--+SPELL|Tasha's Caustic Brew [rbutton]1::TASHAS_CAUSTIC_BREW;1[/rbutton] [rbutton]2::TASHAS_CAUSTIC_BREW;2[/rbutton] [rbutton]3::TASHAS_CAUSTIC_BREW;3[/rbutton]
+	--+SPELL|T's Floating Disk [rbutton]Ritual::TENSERS_FLOATING_DISK;Ritual[/rbutton] [rbutton]1::TENSERS_FLOATING_DISK;1[/rbutton] [rbutton]2::TENSERS_FLOATING_DISK;2[/rbutton] [rbutton]3::TENSERS_FLOATING_DISK;3[/rbutton]
+	--+SPELLS|Level 2
+	--+SPELL|Dragon's Breath [rbutton]2::DRAGONS_BREATH;2[/rbutton] [rbutton]3::DRAGONS_BREATH;3[/rbutton]
+	--+SPELL|Maximillian's Earthen Grasp [rbutton]2::MAXS_EARTHEN_GRASP;2[/rbutton] [rbutton]3::MAXS_EARTHEN_GRASP;3[/rbutton]
+	--+SPELLS|Level 3
+	--+SPELL|Summon Shadowspawn [rbutton]3::SUMMON_SHADOWSPAWN;3[/rbutton]
+	--+SPELL|Tiny Servant [rbutton]3::TINY_SERVANT;3[/rbutton]
+	--X|
+
+	--:MAGE_HAND|
+		--+CANTRIP|Mage Hand
+		--@forselected+|Spawn _name|Mage Hand _qty|1 _size|1,1 _offset|0,-1
+	--X|
+
+	--:EARTH_TREMOR|
+		--&Level|[&reentryval]
+		--+SPELL|Earth Tremor
+		--+TYPE|[rbutton]Acid::EARTH_TREMOR_TYPE;Acid[/rbutton]
+		--+TYPE|[rbutton]Bludgeoning::EARTH_TREMOR_TYPE;Bludgeoning[/rbutton]
+		--+TYPE|[rbutton]Cold::EARTH_TREMOR_TYPE;Cold[/rbutton]
+		--+TYPE|[rbutton]Force::EARTH_TREMOR_TYPE;Force[/rbutton]
+	--X|
+
+	--:EARTH_TREMOR_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Earth Tremor _qty|1 _size|5,5 _bar1|[&Type] _bar2|[$SpellLevel] _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:FROST_FINGERS|
+		--&Level|[&reentryval]
+		--+SPELL|Frost Fingers
+		--+TYPE|[rbutton]Acid::FROST_FINGERS_TYPE;Acid[/rbutton]
+		--+TYPE|[rbutton]Bludgeoning::FROST_FINGERS_TYPE;Bludgeoning[/rbutton]
+		--+TYPE|[rbutton]Cold::FROST_FINGERS_TYPE;Cold[/rbutton]
+		--+TYPE|[rbutton]Force::FROST_FINGERS_TYPE;Force[/rbutton]
+	--X|
+
+	--:FROST_FINGERS_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Frost Fingers _offset|0,-1 _qty|1 _size|3,3 _bar1|[&Type] _bar2|[$SpellLevel] _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:SLEEP|
+		--&Level|[&reentryval]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--=Bonus|[$SpellLevel] - 1
+		--=Bonus|[$Bonus] * 2
+		--=DieCount|5 + [$Bonus]
+		--=HP|[$DieCount]d8
+		--+HP|[$HP]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Sleep _qty|1 _size|9,9 _targets|1 _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:TASHAS_CAUSTIC_BREW|
+		--&Level|[&reentryval]
+		--+SPELL|Tasha's Caustic Brew
+		--+TYPE|[rbutton]Acid::TASHAS_CAUSTIC_BREW_TYPE;Acid[/rbutton]
+		--+TYPE|[rbutton]Bludgeoning::TASHAS_CAUSTIC_BREW_TYPE;Bludgeoning[/rbutton]
+		--+TYPE|[rbutton]Cold::TASHAS_CAUSTIC_BREW_TYPE;Cold[/rbutton]
+		--+TYPE|[rbutton]Force::TASHAS_CAUSTIC_BREW_TYPE;Force[/rbutton]
+	--X|
+
+	--:TASHAS_CAUSTIC_BREW_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Tashas Brew _size|6,1 _bar1|[&Type] _bar2|[$SpellLevel] _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:TENSERS_FLOATING_DISK|
+		--&Level|[&reentryval]
+		--+LEVEL|[&Level]
+		--? [&Level] -eq Ritual|OFFER_QUICKENED
+		--=SpellLevel|[&Level]
+		--:SKIP_QUICKENED|
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Floating Disk  _offset|0,-1 _size|1,1
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:OFFER_QUICKENED|
+		--+SPELL|This spell is being cast as a Ritual!
+		--? [*S:other_resource] -lt 1|SKIP_QUICKENED
+		--+OPTION|[rbutton]Normal Ritual::NORMAL_RITUAL[/rbutton]
+		--+OPTION|[rbutton]Quickened Ritual::QUICKENED_RITUAL[/rbutton]
+	--X|
+
+	--:NORMAL_RITUAL|
+		--+NORMAL|Normal Ritual takes 10 minutes!
+		--@forselected+|Spawn _name|Floating Disk  _offset|0,-1 _size|1,1
+	--X|
+	
+	--:QUICKENED_RITUAL|
+		--+QUICKENED|This Ritual takes 1 Action!
+		--@modattr| _charid @{selected|character_id} _other_resource|-1 _silent
+	--^NORMAL_RITUAL|
+
+	--:DRAGONS_BREATH|
+		--&Level|[&reentryval]
+		--+SPELL|Dragon's Breath
+		--+TYPE|[rbutton]Acid::DRAGONS_BREATH_TYPE;Acid[/rbutton]
+		--+TYPE|[rbutton]Bludgeoning::DRAGONS_BREATH_TYPE;Bludgeoning[/rbutton]
+		--+TYPE|[rbutton]Cold::DRAGONS_BREATH_TYPE;Cold[/rbutton]
+		--+TYPE|[rbutton]Fire::DRAGONS_BREATH_TYPE;Fire[/rbutton]
+		--+TYPE|[rbutton]Lightning::DRAGONS_BREATH_TYPE;Lightning[/rbutton]
+		--+TYPE|[rbutton]Poison::DRAGONS_BREATH_TYPE;Poison[/rbutton]
+		--+TYPE|[rbutton]Psychic::DRAGONS_BREATH_TYPE;Psychic[/rbutton]
+	--X|
+
+	--:DRAGONS_BREATH_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Dragons Breath _offset|0,-1 _size|3,3 _bar1|[&Type] _bar2|[$SpellLevel] _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:MAXS_EARTHEN_GRASP|
+		--&Level|[&reentryval]
+		--+SPELL|Maximilian's Earthen Grasp
+		--+TYPE|[rbutton]Acid::MAXS_EARTHEN_GRASP_TYPE;Acid[/rbutton]
+		--+TYPE|[rbutton]Bludgeoning::MAXS_EARTHEN_GRASP_TYPE;Bludgeoning[/rbutton]
+		--+TYPE|[rbutton]Cold::MAXS_EARTHEN_GRASP_TYPE;Cold[/rbutton]
+		--+TYPE|[rbutton]Fire::MAXS_EARTHEN_GRASP_TYPE;Fire[/rbutton]
+		--+TYPE|[rbutton]Lightning::MAXS_EARTHEN_GRASP_TYPE;Lightning[/rbutton]
+		--+TYPE|[rbutton]Poison::MAXS_EARTHEN_GRASP_TYPE;Poison[/rbutton]
+		--+TYPE|[rbutton]Psychic::MAXS_EARTHEN_GRASP_TYPE;Psychic[/rbutton]
+	--X|
+
+	--:MAXS_EARTHEN_GRASP_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@forselected+|Spawn _name|Earthen Grasp _offset|0,-1 _size|1,1 _targets|1 _bar1|[&Type] _order|back
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:SUMMON_SHADOWSPAWN|
+		--&Level|[&reentryval]
+		--+LEVEL|[&Level]
+		--? [*S:lvl[$SpellLevel]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--+EMOTION|[rbutton]Fury::SUMMON_SHADOWSPAWN_TYPE;Fury[/rbutton]
+		--+EMOTION|[rbutton]Despair::SUMMON_SHADOWSPAWN_TYPE;Despair[/rbutton]
+		--+EMOTION|[rbutton]Fear::SUMMON_SHADOWSPAWN_TYPE;Fear[/rbutton]
+	--X|
+
+	--:SUMMON_SHADOWSPAWN_TYPE|
+		--&Type|[&reentryval]
+		--+TYPE|[&Type]
+		--? [&Type] -ne Fury|SKIP_FURY
+		--+TERROR FRENZY|The Shadowspawn has Advantage on Attacks against Frightened Creatures.
+		--:SKIP_FURY|
+		--? [&Type] -ne Despair|SKIP_DESPAIR
+		--+WEIGHT OF SORROW|Any Creature, other than the Caster, that starts its Turn within 5ft of the Shadowspawn has its speed reduced by 20ft until the end of that Creature's next Turn.
+		--:SKIP_DESPAIR|
+		--? [&Type] -ne Fear|SKIP_FEAR
+		--+SHADOW STEALTH|While in Dim light or darkness, the Shadowspawn takes the Hide Bonus Action.
+		--:SKIP_FEAR|
+		--@forselected+|Spawn _name|Shadowspawn _offset|0,-1 _size|1,1 _bar2|[&Level] 
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:TINY_SERVANT|
+		--&Level|[&reentryval]
+		--+LEVEL|[&Level]
+		--=SpellLevel|[&Level]
+		--=Extra|[$SpellLevel] - 3
+		--=Extra|[$Extra] * 2
+		--=Total|1 + [$Extra]
+		--+SUMMONS|[$Total]
+		--@forselected+|Spawn _name|Tiny Servant _offset|0,-1 _size|1,1 _qty|[$Total] _placement|surround
+		--@modattr| _charid @{selected|character_id} _lvl[$SpellLevel]_slots_expended|-1 _silent
+	--X|
+
+	--:NOT_ENOUGH_SLOTS|
+		--+FAILURE|Not Enough Level [&Level] Slots to Cast!
+	--X|
+}}

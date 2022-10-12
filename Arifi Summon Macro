@@ -1,0 +1,83 @@
+!scriptcard{{
+	--#title|Arifi Summons Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+ABILITIES|Abilities
+	--+ABILITY|[rbutton]Fungal Infestation::FUNGAL_INFESTATION[/rbutton]
+	--+ABILITY|[rbutton]Wild Shape: Myconid Form::MYCONID_FORM[/rbutton]
+	--+SPELLS|Cantrips
+	--+CANTRIP|[rbutton]Mage Hand::MAGE_HAND[/rbutton]
+	--+SPELLS|Level 1
+	--+SPELL|Thunderwave [rbutton]1::THUNDERWAVE;1[/rbutton] [rbutton]2::THUNDERWAVE;2[/rbutton] [rbutton]3::THUNDERWAVE;3[/rbutton] [rbutton]4::THUNDERWAVE;4[/rbutton]
+	--+SPELLS|Level 2
+	--+SPELL|Moonbeam [rbutton]2::MOONBEAM;2[/rbutton] [rbutton]3::MOONBEAM;3[/rbutton] [rbutton]4::MOONBEAM;4[/rbutton] 
+	--+SPELL|Dust Devil [rbutton]2::DUST_DEVIL;2[/rbutton] [rbutton]3::DUST_DEVIL;3[/rbutton] [rbutton]4::DUST_DEVIL;4[/rbutton] 
+	--+SPELLS|Level 3
+	--+SPELL|Call Lightning [rbutton]3::CALL_LIGHTNING;3[/rbutton] [rbutton]4::CALL_LIGHTNING;4[/rbutton]
+
+	--X|
+
+	--:FUNGAL_INFESTATION|
+		--? [*S:repeating_resource_$1_resource_right] -lt 1|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$1_resource_right|-1 _silent
+		--+ABILITY|Fungal Infestation
+		--+EFFECT|If a Beast or Humanoid Small or Medium sized dies within 10ft of the Druid, they can use their reaction to raise it, infesting the corpse with a swarm of fungus. It uses the Zombie stat block. It comes directly after the Druid in Initiative, it directly obeys mental commands, and the only Action it can take is a single Melee attack. After the duration, the Zombie collapses and dies.
+		--+DURATION|1 hour
+		--@forselected+|Spawn _name|Fungal Infestation _qty|1 _size|1,1 _offset|0,-1 _targets|1
+	--X|
+
+	--:MYCONID_FORM|
+		--? [*S:class_resource] -lt 1|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _class_resource|-1 _silent
+		--+ABILITY|Myconid Form
+		--@forselected+|Spawn _name|Myconid Form _qty|1 _size|1,1 _offset|0,-1 _bar1|20 _bar2|SymbioticEntity _bar3|20 
+		--@token-mod| _ids [*S:t-id] _set bar2_value|SymbioticEntity
+	--X|
+
+	--:MAGE_HAND|
+		--+CANTRIP|Mage Hand
+		--@forselected+|Spawn _name|Mage Hand _qty|1 _size|1,1 _offset|0,-1
+	--X|
+
+	--:THUNDERWAVE|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--+THUNDERWAVE|Level [$Level]
+		--@forselected+|Spawn _name|Thunderwave _qty|1 _size|3,3 _offset|0,-1 _bar2|[$Level]
+	--X|
+
+	--:MOONBEAM|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--+MOONBEAM|Level [$Level]
+		--@forselected+|Spawn _name|Moonbeam _qty|1 _size|2,2 _bar2|[$Level] _targets|1
+	--X|
+
+	--:DUST_DEVIL|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--+DUST DEVIL|Level [$Level]
+		--@forselected+|Spawn _name|Dust Devil _qty|1 _size|1,1 _offset|0,-1 _bar2|[$Level]
+	--X|
+
+	--:CALL_LIGHTNING|
+		--=Level|[&reentryval]
+		--+STORMING|Is Storming? [rbutton]Yes::STORMING;1[/rbutton] [rbutton]No::STORMING;0[/rbutton]
+	--X|
+
+	--:STORMING|
+		--=Bonus|[&reentryval]
+		--=Level|[$Level] + [$Bonus]
+		--+CALL LIGHTNING|(Effective) Level [$Level]
+		--@forselected+|Spawn _name|Call Lightning _qty|1 _size|3,3 _offset|0,-1 _bar2|[$Level] _targets|1
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to Use that Ability!
+	--X|
+
+	--:NOT_ENOUGH_SLOTS|
+		--+ERROR|Not Enough Level [$Level] Slots to Cast!
+	--X|
+
+}}

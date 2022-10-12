@@ -1,0 +1,1031 @@
+!scriptcard{{
+	--#title|Nin Attack
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=TargetAC|[*T:ac]
+	--? [*T:npc_ac] -lt [$TargetAC]|SkipAC
+	--=TargetAC|[*T:npc_ac]
+	--:SkipAC|
+
+  	--~Distance|distance;[*S:t-id];[*T:t-id]
+  	--=Distance|[$Distance] * 5
+
+	--+COVER|[rbutton]Half Cover::HALF_COVER[/rbutton]
+	--+COVER|[rbutton]3/4 Cover::3Q_COVER[/rbutton]
+	--:COVER_RETURN|
+
+	--+WEAPON|Multi-Maul [rbutton]Maul::MULTI_MAUL;m[/rbutton] [rbutton]Maul Knockback::MULTI_MAUL;mk[/rbutton] [rbutton]Maul Trip::MULTI_MAUL;mt[/rbutton] [rbutton]Flail::MULTI_MAUL;f[/rbutton] [rbutton]Flail Knockback::MULTI_MAUL;fk[/rbutton] [rbutton]Flail Trip::MULTI_MAUL;ft[/rbutton] [rbutton]Flail Entangle::MULTI_MAUL;fe[/rbutton] [rbutton]Flail Disarm::MULTI_MAUL;fd[/rbutton] [rbutton]Flail Auto Hit::MULTI_MAUL;fa[/rbutton]
+	--+WEAPON|[rbutton]Stormbringer::STORMBRINGER[/rbutton] [*S:other_resource] charges
+	--? [*S:other_charges] -lt 3|SKIP_STORMBRINGER_CHAIN
+	--+ABILITY|[rbutton]Stormbringer Chain Lightning::CHAIN_LIGHTNING[/rbutton]
+	--:SKIP_STORMBRINGER_CHAIN|
+	--? [*S:repeating_resource_$4_resource_right] -lt 1|SKIP_HEAVY_CROSSBOW
+	--+WEAPON|[rbutton]Heavy Crossbow::HEAVY_CROSSBOW;n|[/rbutton] [rbutton]Trip::HEAVY_CROSSBOW;t|[/rbutton] @{selected|repeating_resource_$4_resource_right} / 20 bolts
+	--:SKIP_HEAVY_CROSSBOW|
+	--+WEAPON|[rbutton]Javelin::JAVELIN;m[/rbutton] [rbutton]Ranged::JAVELIN;r[/rbutton] [rbutton]Melee Sunder::JAVELIN;ms[/rbutton] [rbutton]Ranged Sunder::JAVELIN;rs[/rbutton]
+	--+WEAPON|[rbutton]Hand Axe::HAND_AXE;m[/rbutton] [rbutton]Ranged::HAND_AXE;r[/rbutton] [rbutton]Melee Trip::HAND_AXE;mt[/rbutton] [rbutton]Ranged Trip::HAND_AXE;rt[/rbutton]
+	--+WEAPON|[rbutton]Unarmed::UNARMED[/rbutton]
+
+	--:INIT_VALUES|
+	--=Damage1Count|0
+	--=Damage1Die|0
+	--&Damage1Type|NULL
+	--=Damage2Count|0
+	--=Damage2Die|0
+	--&Damage2Type|NULL
+	--=Damage3Count|0
+	--=Damage3Die|0
+	--&Damage3Type|NULL
+	--&SEffectString|[*S:t-bar2_value]
+	--&TEffectString|[*T:t-bar2_value]
+	--=BardicFlag|0
+	--=BardicDie|@{Nobis|BardicInspirationDie}
+	--=CritFlag|0
+	--&AttackType|NULL
+	--&WeaponName|NULL
+	--=DamageFlag|0
+	--=ForcesSave|0
+	--=SpecialAttack|0
+	--&SaveMod|NULL
+	--&SaveStat|NULL
+	--=SaveDC|8 + [*S:pb] + [*S:strength_mod]
+	--=AutoHit|0
+	--=Handed|0
+	--=ApplyEffect|0
+	--&AppliedEffect|NULL
+	--=AppliedQty|0
+	--&DeflectString|NULL
+	--=Deflect|0
+	--=DeflectFlag|0
+	--=DeflectableFlag|0
+
+	--? [&TEffectString] -inc Sunder|>APPLY_SUNDER
+	--X|
+
+	--:HALF_COVER|
+		--+COVER|Half Cover: AC + 2!
+		--=TargetAC|[$TargetAC] + 2
+	--^COVER_RETURN|
+
+	--:3Q_COVER|
+		--+COVER|3/4 Cover: AC + 5!
+		--=TargetAC|[$TargetAC] + 5
+	--^COVER_RETURN|
+
+	--:APPLY_SUNDER|
+		--~AfterStart|string;after;Sunder:;[&TEffectString]
+		--~Num|string;before;:;[&AfterStart]
+
+		--=Num|[&Num]
+
+		--+SUNDER|Target was sundered, reduced AC!
+		--=TargetAC|[$TargetAC] - [$Num]
+	--<|
+
+	--:MULTI_MAUL|
+		--&Mode|[&reentryval]
+		--? [&Mode] -eq m|>MULTI_MAUL_MAUL_MODE
+		--? [&Mode] -eq mk|>MULTI_MAUL_MAUL_SPECIAL
+		--? [&Mode] -eq mt|>MULTI_MAUL_MAUL_SPECIAL
+		--? [&Mode] -eq f|>MULTI_MAUL_FLAIL_MODE
+		--? [&Mode] -eq fk|>MULTI_MAUL_FLAIL_SPECIAL
+		--? [&Mode] -eq ft|>MULTI_MAUL_FLAIL_SPECIAL
+		--? [&Mode] -eq fe|>MULTI_MAUL_FLAIL_SPECIAL
+		--? [&Mode] -eq fd|>MULTI_MAUL_FLAIL_SPECIAL
+		--? [&Mode] -eq fa|>MULTI_MAUL_FLAIL_SPECIAL
+		--&Damage1Type|Magical Bludgeoning
+		--&ToHitMod|[*S:strength_mod] + [*S:pb]
+		--&AttackType|STR
+		--&WeaponType|MELEE
+		--=Handed|2
+	--^SELECT_ATTACK|
+
+	--:MULTI_MAUL_MAUL_MODE|
+		--=Damage1Count|2
+		--=Damage1Die|8
+		--&WeaponName|Multi-Maul: Maul Mode
+		--&WeaponTags|Penetrate,Stagger
+		--&DamageMod|[*S:strength_mod]
+	--<|
+
+	--:MULTI_MAUL_MAUL_SPECIAL|
+		--=Damage1Count|2
+		--=Damage1Die|8
+		--&WeaponName|Multi-Maul: Maul Mode
+		--&WeaponTags|Penetrate,Stagger
+		--=ForcesSave|1
+		--=SpecialAttack|1
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--? [&Mode] -eq mk|>MAUL_KNOCKBACK
+		--? [&Mode] -eq mt|>MAUL_TRIP
+	--<|
+
+	--:MAUL_KNOCKBACK|
+		--&Effect|The Target is moved 10ft in a Direction of Your Choice!
+	--<|
+
+	--:MAUL_TRIP|
+		--&Effect|The Target is Knocked Prone!
+	--<|
+
+	--:MULTI_MAUL_FLAIL_MODE|
+		--=Damage1Count|1
+		--=Damage1Die|10
+		--&WeaponName|Multi-Maul: Flail Mode
+		--&WeaponTags|Penetrate
+		--=VersatileBonus|[*S:strength_mod] \ 2
+		--&DamageMod|[*S:strength_mod] + [$VersatileBonus.Raw]
+	--<|
+
+	--:MULTI_MAUL_FLAIL_SPECIAL|
+		--=Damage1Count|1
+		--=Damage1Die|10
+		--&WeaponName|Multi-Maul: Flail Mode
+		--&WeaponTags|Penetrate
+		--=ForcesSave|1
+		--=SpecialAttack|1
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--? [&Mode] -eq fk|>FLAIL_KNOCKBACK
+		--? [&Mode] -eq ft|>FLAIL_TRIP
+		--? [&Mode] -eq fe|>FLAIL_ENTANGLE
+		--? [&Mode] -eq fd|>FLAIL_DISARM
+		--? [&Mode] -eq fa|>FLAIL_AUTOHIT
+	--<|
+
+	--:FLAIL_KNOCKBACK|
+		--&Effect|The Target is moved 5ft in a Direction of Your Choice!
+	--<|
+
+	--:FLAIL_TRIP|
+		--&Effect|The Target is Knocked Prone!
+	--<|
+
+	--:FLAIL_ENTANGLE|
+		--&Effect|The Target is Grappled!
+	--<|
+
+	--:FLAIL_DISARM|
+		--&Effect|The Target Drops an Object of your Choice!
+	--<|
+
+	--:FLAIL_AUTOHIT|
+		--=AutoHit|1
+		--=ForcesSave|0
+	--<|
+
+	--:STORMBRINGER|
+		--=Damage1Count|2
+		--=Damage1Die|6
+		--&Damage1Type|Slashing
+		--&DamageMod|[*S:strength_mod] + 2
+		--&ToHitMod|[*S:strength_mod] + [*S:pb] + 2
+		--&AttackType|STR
+		--&WeaponName|Stormbringer
+		--&WeaponTags|Keen,Stagger
+		--&WeaponType|MELEE
+		-->DEFLECT_STRING|
+		--=DeflectableFlag|1
+		--? [*S:other_resource] -gt 0|>APPLY_STORMBRINGER_CHARGES_1
+	--^SELECT_ATTACK|
+
+	--:APPLY_STORMBRINGER_CHARGES_1|
+		--=Damage2Count|1
+		--=Damage2Die|6
+		--&Damage2Type|Lightning
+		--? [*S:other_resource] -gt 1|>APPLY_STORMBRINGER_CHARGES_2
+	--<|
+
+	--:APPLY_STORMBRINGER_CHARGES_2|
+		--=Damage3Count|1
+		--=Damage3Die|6
+		--&Damage3Type|Thunder
+		--? [*S:other_resource] -gt 2|>APPLY_STORMBRINGER_CHARGES_3
+	--<|
+
+	--:APPLY_STORMBRINGER_CHARGES_3|
+		--=Charges|[*S:other_resource]
+		--=Chains|[$Charges] - 2
+		--+STORMBRINGER|If this Attack hits, it will chain to [$Chains] additional Target(s) within 15ft of the previous Target!
+	--<|
+
+	--:CHAIN_LIGHTNING|
+		--=Damage1Count|1
+		--=Damage1Die|6
+		--&Damage1Type|Lightning
+		--&DamageMod|0
+		--&ToHitMod|[*S:strength_mod] + [*S:pb] + 2
+		--&AttackType|SPELL
+		--&WeaponName|Stormbringer: Chain Lightning
+		--&WeaponType|RANGED
+		--=DeflectableFlag|0
+	--^SELECT_ATTACK|
+
+	--:HEAVY_CROSSBOW|
+		--@modattr| _charid [*S:id] _repeating_resource_$4_resource_right|-1 _silent
+		--=Damage1Count|1
+		--=Damage1Die|10
+		--&Damage1Type|Piercing
+		--&DamageMod|[*S:dexterity_mod]
+		--&ToHitMod|[*S:dexterity_mod] + [*S:pb]
+		--&AttackType|DEX
+		--&WeaponType|RANGED
+		--&WeaponName|Heavy Crossbow
+		--&WeaponTags|Keen,Penetrate,Puncture
+		--? [&reentryval] -eq t|>HEAVY_CROSSBOW_TRIP
+		--=NormalRange|100
+		--=LongRange|400
+		-->CHECK_DISTANCE|
+	--^SELECT_ATTACK|
+
+	--:HEAVY_CROSSBOW_TRIP|
+		--=ForcesSave|1
+		--=SpecialAttack|1
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--&Effect|The Target is Knocked Prone!
+	--<|
+
+	--:JAVELIN|
+		--&Mode|[&reentryval]
+		--=Damage1Count|1
+		--=Damage1Die|6
+		--&Damage1Type|Piercing
+		--&DamageMod|[*S:strength_mod]
+		--&ToHitMod|[*S:strength_mod] + [*S:pb]
+		--&AttackType|STR
+		--&WeaponName|Javelin
+		--&WeaponTags|Penetrate
+		--? [&Mode] -inc m|>JAVELIN_MELEE
+		--? [&Mode] -inc r|>JAVELIN_RANGED
+		--? [&Mode] -inc s|>JAVELIN_SUNDER
+		--=Handed|1
+		--=NormalRange|30
+		--=LongRange|120
+		-->CHECK_DISTANCE|
+	--^SELECT_ATTACK|
+
+	--:JAVELIN_MELEE|
+		--&WeaponType|MELEE
+	--<|
+
+	--:JAVELIN_RANGED|
+		--&WeaponType|RANGED
+	--<|
+
+	--:JAVELIN_SUNDER|
+		--=ForcesSave|1
+		--=SpecialAttack|1
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--&Effect|The Target's AC is Reduced by 1!
+		--=ApplyEffect|1
+		--&AppliedEffect|Sunder:#:
+		--=AppliedQty|1
+	--<|
+
+	--:HAND_AXE|
+		--&Mode|[&reentryval]
+		--=Damage1Count|1
+		--=Damage1Die|6
+		--&Damage1Type|Slashing
+		--&DamageMod|[*S:strength_mod]
+		--&ToHitMod|[*S:strength_mod] + [*S:pb]
+		--&AttackType|STR
+		--&WeaponName|Hand Axe
+		--? [&Mode] -inc m|>HAND_AXE_MELEE
+		--? [&Mode] -inc r|>HAND_AXE_RANGED
+		--? [&Mode] -inc t|>HAND_AXE_TRIP
+		--=Handed|1
+		--=NormalRange|20
+		--=LongRange|60
+		-->CHECK_DISTANCE|
+	--^SELECT_ATTACK|
+
+	--:HAND_AXE_MELEE|
+		--&WeaponType|MELEE
+	--<|
+
+	--:HAND_AXE_RANGED|
+		--&WeaponType|RANGED
+	--<|
+
+	--:HAND_AXE_TRIP|
+		--=ForcesSave|1
+		--=SpecialAttack|1
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--&Effect|The Target is Knocked Prone!
+	--<|
+
+	--:UNARMED|
+		--=Damage1Count|1
+		--=Damage1Die|1
+		--&Damage1Type|Bludgeoning
+		--&DamageMod|[*S:strength_mod]
+		--&ToHitMod|[*S:strength_mod]
+		--&AttackType|STR
+		--&WeaponType|MELEE
+		--&WeaponName|Unarmed Strike
+	--^SELECT_ATTACK|
+
+	--:USE_STR|
+		--&SaveStat|STR
+	--<|
+
+	--:USE_DEX|
+		--&SaveStat|DEX
+	--<|
+
+	--:CHECK_DISTANCE|
+		--? [$Distance] -le [$NormalRange]|SKIP_DISTANCE_WARNING
+		--? [$Distance] -gt [$LongRange]|ERROR_RANGE
+		--+WARNING|You are attacking from further ([$Distance] ft) than the Normal Range ([$NormalRange] ft) but closer than Max Range ([$LongRange] ft). Unless you have a Feature stating otherwise, factor Disadvantage into your Attack.
+		--:SKIP_DISTANCE_WARNING|
+	--<|
+
+	--:ERROR_RANGE|
+		--+FAILURE|Current Attack Distance ([$Distance] ft) further than Max Range ([$LongRange] ft). Attack Canceled.
+	--X|
+
+	--:SELECT_ATTACK|
+		--? [&SEffectString] -inc Invisible|>INVIS_EMOTE
+		--? [&SEffectString] -ninc Invisible|>NORMAL_EMOTE
+		--+ATTACK|[rbutton]Advantage::TO_HIT;2d20kh1[/rbutton]
+		--+ATTACK|[rbutton]Normal::TO_HIT;1d20[/rbutton]
+		--+ATTACK|[rbutton]Disadvantage::TO_HIT;2d20kl1[/rbutton]
+	--X|
+
+	--:INVIS_EMOTE|
+		--#emoteText|Something attacks @{target|token_name} with ...something?
+	--<|
+
+	--:NORMAL_EMOTE|
+		--#emoteText|@{selected|token_name} attacks @{target|token_name} with their [&WeaponName]
+	--<|
+
+	--:TO_HIT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--&RollString|[&reentryval] + [&ToHitMod]
+
+		--? [&SEffectString] -inc Bless|>BLESS
+		--? [&SEffectString] -inc Bane|>BANE
+		--? [&SEffectString] -inc BolsteringMagic|>BOLSTERING_MAGIC
+		--? "[&WeaponTags]" -inc "Penetrate"|>PENETRATE
+
+		--? [&TEffectString] -inc MirrorImage|>MIRROR_IMAGE
+
+		--+ROLL|[&RollString]
+		--=ToHit|[&RollString]
+		--+TO HIT|[$ToHit]
+
+		--? [$ToHit.Base] -eq 20|CRITICAL
+		--? [$ToHit.Base] -eq 1|FUMBLE
+		--:BARDIC_RETURN|
+		--? [$ToHit] -ge [$TargetAC]|HIT
+		--? [$ToHit] -lt [$TargetAC]|MISS
+	--X|
+
+	--:BLESS|
+ 		--=Bless|1d4
+ 		--+Bless|[$Bless]
+ 		--&RollString|+ + [$Bless.Raw]
+	--<|
+
+	--:BANE|
+ 		--=Bane|1d4
+ 		--+Bane|[$Bane]
+ 		--&RollString|+ - [$Bane.Raw]
+	--<|
+
+	--:BOLSTERING_MAGIC|
+ 		--=Bolster|1d3
+ 		--+Bolstering Magic|[$Bolster]
+ 		--&RollString|+ + [$Bolster.Raw]
+	--<|
+
+	--:MIRROR_IMAGE|
+		--~AfterMirror|string;after;MirrorImage:;[&TEffectString]
+		--~ImageCount|string;before;:;[&AfterMirror]
+
+		--=ImageCount|[&ImageCount]
+
+		--=MirrorImageRoll|1d20
+		--+TEST|[$MirrorImageRoll]
+		--=MirrorImageAC|10 + [*T:dexterity_mod]
+
+		--? [$ImageCount] -eq 1|1_IMAGE
+		--? [$ImageCount] -eq 2|2_IMAGE
+		--? [$ImageCount] -eq 3|3_IMAGE
+		--:MIRROR_IMAGE_RETURN|
+
+		--? [$ToHit] -ge [$MirrorImageAC]|MIRROR_IMAGE_HIT
+		--? [$ToHit] -lt [$MirrorImageAC]|MIRROR_IMAGE_MISS
+
+		--:MIRROR_IMAGE_CANCEL|
+	--<|
+
+	--:1_IMAGE|
+		--? [$MirrorImageRoll] -lt 11|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:2_IMAGE|
+		--? [$MirrorImageRoll] -lt 8|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:3_IMAGE|
+		--? [$MirrorImageRoll] -lt 6|MIRROR_IMAGE_CANCEL
+	--^MIRROR_IMAGE_RETURN|
+
+	--:MIRROR_IMAGE_HIT|
+		--+HIT|Your Attack was Directed at a Mirror Image and Hit the Image!
+
+		--~Before|string;before;:MirrorImage;[&TEffectString]
+		--~After|string;after;:;[&AfterMirror]
+
+		--=ImageCount|[$ImageCount] - 1
+
+		--? [$ImageCount] -eq 0|>REMOVE_MIRROR_IMAGE
+		--? [$ImageCount] -gt 0|>DECREMENT_MIRROR_IMAGE
+
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+
+	--:REMOVE_MIRROR_IMAGE|
+		--&TEffectString|[&Before][&After]
+	--<|
+
+	--:DECREMENT_MIRROR_IMAGE|
+		--&TEffectString|[&Before][&After]:MirrorImage:[$ImageCount.Raw]:
+	--<|
+
+	--:MIRROR_IMAGE_MISS|
+		--+MISS|Your Attack was Directed at a Mirror Image and Missed the Image!
+	--X|
+
+	--:PENETRATE|
+		--? [$TargetAC] -lt 15|SKIP_PENETRATE
+		--+PENETRATE|Penetration Active!
+		--? [&WeaponType] -eq MELEE|>MELEE_PENETRATE
+		--? [&WeaponType] -eq RANGED|>RANGED_PENETRATE
+		--:SKIP_PENETRATE|
+	--<|
+
+	--:MELEE_PENETRATE|
+		--? [$Handed] -eq 1|>ONE_HANDED_PENETRATE
+		--? [$Handed] -eq 2|>TWO_HANDED_PENETRATE
+	--<|
+
+	--:ONE_HANDED_PENETRATE|
+		--&RollString|+ + 1
+	--<|
+
+	--:TWO_HANDED_PENETRATE|
+		--&RollString|+ + 2
+	--<|
+
+	--:RANGED_PENETRATE|
+		--=HalfMod|[*S:dexterity_mod] \ 2
+		--&RollString|+ + [$HalfMod.Raw]
+	--<|
+
+	--:CRITICAL|
+		--? [&TEffectString] -inc CritNegate|NEGATE_CRIT
+		--? [$SpecialAttack] -eq 1|SKIP_CRIT
+		--=CritBonus|[$Damage1Count.Raw] * [$Damage1Die.Raw]
+		--&DamageMod|+ + [$CritBonus] [CRIT]
+		--=Damage2Count|[$Damage2Count] * 2
+		--=Damage3Count|[$Damage3Count] * 2
+		--:SKIP_CRIT|
+		--? "[&WeaponTags]" -inc "Keen"|>KEEN_CRIT
+		--+CRITICAL|[rbutton]Critical Hit!::DAMAGE[/rbutton]
+		--=CritFlag|1
+	--X|
+
+	--:KEEN_CRIT|
+		--=Damage1Count|[$Damage1Count] + 1
+	--<|
+
+	--:NEGATE_CRIT|
+		--+CRITICAL|Critical Hit!
+		--+NEGATED|Critical Negated!
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:FUMBLE|
+		--? [$AutoHit] -eq 1|HIT
+		--+FUMBLE|Critical Failure.
+	--X|
+
+	--:HIT|
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:MISS|
+		--? [$AutoHit] -eq 1|HIT
+		--+MISS|Miss.
+		--? [&SEffectString] -ninc BardicInspiration|SKIP_BARDIC
+		--? [$BardicFlag] -eq 1|SKIP_BARDIC
+		--+INSPIRED|[rbutton]Use Bardic Inspiration?::BARDIC_INSPIRATION[/rbutton]
+		--:SKIP_BARDIC|
+		--? "[&WeaponTags]" -inc "Stagger"|>CHECK_STAGGER
+	--X| 
+
+	--:CHECK_STAGGER|
+		--=Diff|[$TargetAC] - [$ToHit]
+		--? [$Diff] -gt [*S:strength_mod]|SKIP_STAGGER
+		--? [&SEffectString] -inc Enlarged|SKIP_SIZE_CHECK
+		--? "[*T:npc_type]" -inc "Gargantuan"|SKIP_STAGGER
+		--:SKIP_SIZE_CHECK|
+		--+STAGGER|You have Staggered the Enemy! The next Attack against it has Advantage!
+		--:SKIP_STAGGER|
+	--<|
+
+	--:SPECIAL_DROP_DAMAGE|
+		--? [$CritFlag] -eq 1|SKIP_DROP
+		--=Damage1Count|0
+		--=Damage1Die|0
+		--=Damage2Count|0
+		--=Damage2Die|0
+		--:SKIP_DROP|
+	--<|
+
+	--:BARDIC_INSPIRATION|
+		--? [$BardicFlag] -eq 1|ERROR_BARDIC
+		--=BardicFlag|1
+		--=Bardic|1d[$BardicDie]
+		--+Bardic Roll|[$Bardic]
+		--=ToHit|[$ToHit] + [$Bardic]
+		--+New To Hit|[$ToHit]
+
+		--~Before|string;before;BardicInspiration;[&SEffectString]
+		--~After|string;after;BardicInspiration;[&SEffectString]
+
+		--&SEffectString|[&Before][&After]
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+	--^BARDIC_RETURN|
+
+	--:DAMAGE|			
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--? [$DamageFlag] -eq 1|ERROR_DAMAGE
+		--=DamageFlag|1
+		--=Damage1|0
+		--=Damage2|0
+		--=Damage3|0
+
+		--? "[&WeaponName]" -eq	"Stormbringer"|>ADD_STORMBRINGER_CHARGES
+
+		--? [$SpecialAttack] -eq 1|>SPECIAL_DROP_DAMAGE
+
+		--? [&SEffectString] -inc Rage|>APPLY_RAGE_DAMAGE
+
+		--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+		--? [$Damage2Count] -eq 0|SkipDamage2a
+		--&Damage2String|[$Damage2Count.Raw]d[$Damage2Die.Raw]
+		--:SkipDamage2a|
+		--? [$Damage3Count] -eq 0|SkipDamage3a
+		--&Damage3String|[$Damage3Count.Raw]d[$Damage3Die.Raw]
+		--:SkipDamage3a|
+
+		--? "[&WeaponTags]" -inc "Puncture"|>ADD_PUNCTURE
+
+		--? [&SEffectString] -inc Enlarged|>ENLARGED
+		--? [&SEffectString] -inc Reduced|>REDUCED
+
+		--&Damage1String|+ + [&DamageMod]
+
+		--=Damage1|[&Damage1String]
+		--+[&Damage1Type] Damage|[$Damage1]
+		--? [$Damage2Count] -eq 0|SkipDamage2b
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] Damage|[$Damage2]
+		--:SkipDamage2b|
+		--? [$Damage3Count] -eq 0|SkipDamage3b
+		--=Damage3|[&Damage3String]
+		--+[&Damage3Type] Damage|[$Damage3]
+		--:SkipDamage3b|
+
+		--? [&SEffectString] -inc Enfeebled|>ENFEEBLED
+
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>VULN_1
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>VULN_2
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage3Type]"|>VULN_3
+		--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>RESIST_1
+		--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>RESIST_2
+		--? "[*T:npc_resistances]" -inc "[&Damage3Type]"|>RESIST_3
+		--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>IMMUNE_1
+		--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>IMMUNE_2
+		--? "[*T:npc_immunities]" -inc "[&Damage3Type]"|>IMMUNE_3
+
+		--? [&TEffectString] -inc Underwater|>UNDERWATER
+
+		--=TotalDamage|[$Damage1] + [$Damage2] + [$Damage3]
+
+		--? "[&TEffectString]" -inc "DT"|>APPLY_DAMAGE_THRESHOLD
+
+		--+TotalDamage|[$TotalDamage]
+
+		--? [&TEffectString] -inc Retaliation|>RETALIATION
+
+		--? [$ForcesSave] -eq 1|>PROMPT_SAVE
+	--^APPLY_DAMAGE|
+
+	--:ADD_STORMBRINGER_CHARGES|
+		--=ChargesToAdd|1
+		--? [&TEffectString] -inc Metal|>STORMBRINGER_PLUS_2
+		--? [&TEffectString] -inc Water|>STORMBRINGER_MINUS_1
+
+		--=Max|2
+		--? [*S:level] -lt 3|SKIP_INCREASE_MAX_CHARGE
+		--=Max|3
+		--? [*S:level] -lt 6|SKIP_INCREASE_MAX_CHARGE
+		--=Max|4
+		--? [*S:level] -lt 12|SKIP_INCREASE_MAX_CHARGE
+		--=Max|5
+		--? [*S:level] -lt 17|SKIP_INCREASE_MAX_CHARGE
+		--=Max|6
+		--? [*S:level] -lt 20|SKIP_INCREASE_MAX_CHARGE
+		--=Max|100
+		--:SKIP_INCREASE_MAX_CHARGE|
+
+		--=Charges|[*S:other_resource]
+		--=NewTotal|[$Charges] + [$ChargesToAdd]
+
+		--? [$NewTotal] -gt [$Max]|>STORMBRINGER_MAX_CHARGES
+		--? [$NewTotal] -lt 1|>STORMBRINGER_NO_CHARGE
+
+		--@setattr| _charid [*S:id] _other_resource|[$NewTotal] _silent
+	--<|
+
+	--:STORMBRINGER_PLUS_2|
+		--=ChargesToAdd|2
+	--<|
+
+	--:STORMBRINGER_MINUS_1|
+		--=ChargesToAdd|-1
+	--<|
+
+	--:STORMBRINGER_MAX_CHARGES|
+		--=NewTotal|[$Max]
+	--<|
+
+	--:STORMBRINGER_NO_CHARGE|
+		--=NewTotal|0
+	--<|
+
+	--:ADD_PUNCTURE|
+		--&Damage1String|+!
+	--<|
+
+	--:APPLY_RAGE_DAMAGE|
+		--? [&WeaponType] -ne MELEE|SKIP_RAGE_DAMAGE
+		--? [&AttackType] -ne STR|SKIP_RAGE_DAMAGE
+		--=RageDamage|2
+		--? [*S:level] -lt 9|SKIP_EXTRA_RAGE_DAMAGE
+		--=RageDamage|3
+		--? [*S:level] -lt 16|SKIP_EXTRA_RAGE_DAMAGE
+		--=RageDamage|4
+		--:SKIP_EXTRA_RAGE_DAMAGE|
+		--&DamageMod|+ + [$RageDamage.Raw]
+		--:SKIP_RAGE_DAMAGE|
+	--<|
+
+	--:ENLARGED|
+		--? [&AttackType] -ne STR|ENLARGED_SKIP
+		--? [$CritFlag] -eq 1|ENLARGED_CRIT
+		--&Damage1String|+ + 1d4
+		--:ENLARGED_CRIT_RETURN|
+		--:ENLARGED_SKIP|
+	--<|
+
+	--:ENLARGED_CRIT|
+		--&Damage1String|+ + 2d4
+	--^ENLARGED_CRIT_RETURN|
+
+	--:REDUCED|
+		--&Damage1String|+ - 1d4
+	--<|
+	
+	--:ENFEEBLED|
+		--? [&AttackType] -ne STR|SKIP_ENFEEBLED
+		--+ENFEEBLED|Damage Halved!
+		--=Damage1|[$Damage1] \ 2
+		--:SKIP_ENFEEBLED|
+	--<|
+
+	--:VULN_1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:VULN_2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:VULN_3|
+		--=Damage3|[$Damage3] * 2
+	--<|
+
+	--:RESIST_1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:RESIST_2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:RESIST_3|
+		--=Damage3|[$Damage3] \ 2
+	--<|
+
+	--:IMMUNE_1|
+		--=Damage1|0
+	--<|
+
+	--:IMMUNE_2|
+		--=Damage2|0
+	--<|
+
+	--:IMMUNE_3|
+		--=Damage3|0
+	--<|
+
+	--:UNDERWATER|
+		--? "[*T:npc_resistances]" -inc "Fire"|SKIP_UNDERWATER
+		--? [&Damage1Type] -eq Fire|>RESIST_1
+		--? [&Damage2Type] -eq Fire|>RESIST_2
+		--:SKIP_UNDERWATER|
+	--<|
+
+	--:APPLY_DAMAGE_THRESHOLD|
+		--+DT|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:APPLY_DAMAGE|
+		--? @{target|bar3} -gt 0|APPLY_TEMP_DAMAGE
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_DAMAGE|
+		--? @{target|bar3} -lt [$TotalDamage]|APPLY_TEMP_PARTIAL
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_PARTIAL|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_TOKEN|
+
+	--:MARK_TOKEN|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_TOKEN_DEAD
+	--X|
+
+  	--:MARK_TOKEN_RED|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#red
+  	--X|
+
+  	--:MARK_TOKEN_DEAD|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#dead|-red
+  	--X|
+
+  	--:ERROR_BARDIC|
+  		--+ERROR|You have already used Bardic Inspiration!
+  	--X|
+
+  	--:ERROR_DAMAGE|
+  		--+ERROR|You have already applied Damage!
+  	--X|
+
+  	--:PROMPT_SAVE|
+  		--+SAVE|[rbutton]Advantage::SAVE_ROLL;2d20lh1[/rbutton]
+  		--+SAVE|[rbutton]Normal::SAVE_ROLL;1d20[/rbutton]
+  		--+SAVE|[rbutton]Disadvantage::SAVE_ROLL;2d20ll1[/rbutton]
+  	--<|
+
+	--:SAVE_ROLL|
+		--&RollString|[&reentryval]
+
+		--? [&SaveStat] -eq STR|>STR
+		--? [&SaveStat] -eq DEX|>DEX
+		--? [&SaveStat] -eq CON|>CON
+		--? [&SaveStat] -eq INT|>INT
+		--? [&SaveStat] -eq WIS|>WIS
+		--? [&SaveStat] -eq CHR|>CHR
+
+		--? [&TEffectString] -inc Bless|>BLESS_SAVE
+		--? [&TEffectString] -inc Bane|>BANE_SAVE
+		--? [&TEffectString] -inc MindSliver|>MIND_SLIVER
+
+		--&RollString|+ + [&SaveMod]
+		--+[&SaveStat] SAVE|[&RollString]
+		--+SAVE DC|[$SaveDC]
+		--=SaveRoll|[&RollString]
+		--+ROLL|[$SaveRoll]
+
+		--:REROLL_RETURN|
+		--? [$SaveRoll] -ge [$SaveDC]|SAVE
+		--? [$SaveRoll] -lt [$SaveDC]|FAIL
+	--X|
+
+	--:STR|
+		--&SaveMod|[*T:strength_save_bonus]
+	--<|
+
+	--:DEX|
+		--&SaveMod|[*T:dexterity_save_bonus]
+	--<|
+
+	--:CON|
+		--&SaveMod|[*T:constitution_save_bonus]
+	--<|
+
+	--:INT|
+		--&SaveMod|[*T:intelligence_save_bonus]
+	--<|
+
+	--:WIS|
+		--&SaveMod|[*T:wisdom_save_bonus]
+	--<|
+
+	--:CHR|
+		--&SaveMod|[*T:charisma_save_bonus]
+	--<|
+
+	--:BLESS_SAVE|
+		--=Bless|1d4
+		--&SaveMod|+ + [$Bless.Raw]
+	--<|
+
+	--:BANE_SAVE|
+		--=Bane|1d4
+		--&SaveMod|+ - [$Bane.Raw]
+	--<|
+
+	--:MIND_SLIVER|
+		--=Sliver|1d4
+		--&SaveMod|+ - [$Sliver.Raw]
+	--<|
+
+	--:SAVE|
+		--+SAVE|The Target Saved!
+		--? "[&WeaponName]" -ninc "Flail"|SKIP_MASTER_FLAIL
+		--+MASTER|As a Master with the Flail, you can make an additional Attack for free!
+		--:SKIP_MASTER_FLAIL|
+	--X|
+
+	--:FAIL|
+		--+FAIL|The Target Failed!
+		--+EFFECT|[&Effect]
+		--? [$ApplyEffect] -eq 1|>APPLY_EFFECT
+	--X|
+
+	--:APPLY_EFFECT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--~BeforeNum|string;before;#;[&AppliedEffect]
+		--~AfterNum|string;after;#;[&AppliedEffect]
+
+		--? [&TEffectString] -inc [&BeforeNum]|ADD_TO_CURRENT_EFFECT
+
+		--&ApplyString|[&BeforeNum][$AppliedQty.Raw][&AfterNum]
+		--&TEffectString|+[&ApplyString]
+		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+
+	--:ADD_TO_CURRENT_EFFECT|	
+		--~AfterStart|string;after;[&BeforeNum];[&TEffectString]
+		--~BeforeStart|string;before;[&BeforeNum];[&TEffectString]		
+		--~BeforeEnd|string;before;[&AfterNum];[&AfterStart]	
+		--~AfterEnd|string;after;[&AfterNum];[&AfterStart]		
+
+		--=CurrentVal|[&BeforeEnd]
+		--=NewVal|[$CurrentVal] + [$AppliedQty]
+
+		--&TEffectString|[&BeforeStart][&BeforeNum][$NewVal.Raw][$AfterNum][&AfterEnd]
+		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+
+  	--:RETALIATION|
+  		--=RetaliationFlag|1
+
+  		--~AfterMark|string;after;Retaliation:;[&TEffectString]
+  		--~AfterMark2|string;after;:;[&AfterMark]
+  		--~RetaliationDamageString|string;before;:;[&AfterMark]
+  		--~RetaliationDamageType|string;before;:;[&AfterMark2]
+
+  		--=RetaliationDamage|[&RetaliationDamageString]
+  		
+  		--? [&TEffectString] -inc TempHealthRetaliation|>TEMP_HEALTH_RETALIATION
+  		--? [&TEffectString] -inc MeleeRetaliation|>MELEE_RETALIATION
+  		--? [&TEffectString] -inc DistanceRetaliation|>DISTANCE_RETALITION
+
+  		--? [$RetaliationFlag] -eq 0|SKIP_RETALIATION
+
+		--? "[*S:npc_vulnerabilities]" -inc "[&RetaliationDamageType]"|>VULN_RETLATIATION
+		--? "[*S:npc_resistances]" -inc "[&RetaliationDamageType]"|>RESIST_RETLATIATION
+		--? "[*S:npc_immunities]" -inc "[&RetaliationDamageType]"|>IMMUNE_RETLATIATION
+
+		--+RETALIATION|[$RetaliationDamage] [&RetaliationDamageType] Damage
+
+		--? [*S:t-bar3_value] -eq 0|>RETALIATION_APPLY_DAMAGE
+		--? [*S:t-bar3_value] -le [$RetaliationDamage]|>RETALIATION_APPLY_PARTIAL_DAMAGE
+		--? [*S:t-bar3_value] -gt [$RetaliationDamage]|>RETALIATION_APPLY_TEMP_DAMAGE
+
+		--:SKIP_RETALIATION|
+  	--<|
+
+  	--:TEMP_HEALTH_RETALIATION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+  		--? [$RetaliationDamage] -ge [*T:t-bar3_value]|>TEMP_HEALTH_RETALIATION_REMOVE
+  	--<|
+
+  	--:MELEE_RETALIATION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+  	--<|
+
+  	--:DISTANCE_RETALITION|
+  		--? [&WeaponType] -eq RANGED|>INVALID_RETALIATION
+
+  		--~AfterMark3|string;after;:;[&AfterMark2]
+  		--~MaxDistance|string;before;:;[&AfterMark3]
+  		--=MaxDistance|[&MaxDistance]
+
+  		--? [$Distance] -gt [$MaxDistance]|>INVALID_RETALIATION
+  	--<|
+
+	--:VULN_RETLATIATION|
+		--=RetaliationDamage|[$RetaliationDamage] * 2
+	--<|
+
+	--:RESIST_RETLATIATION|
+		--=RetaliationDamage|[$RetaliationDamage] \ 2
+	--<|
+
+	--:IMMUNE_RETLATIATION|
+		--=RetaliationDamage|0
+	--<|
+
+	--:INVALID_RETALIATION|
+		--=RetaliationFlag|0
+	--<|
+
+	--:TEMP_HEALTH_RETALIATION_REMOVE|
+		--+TEST|REMOVE
+		--~BeforeRetaliation|string;before;TempHealthRetaliation;[&TEffectString]
+		--~AfterRetaliation|string;after;:;[&AfterMark2]
+
+		--&TEffectString|[&BeforeRetaliation][&AfterRetaliation]
+
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString]
+	--<|
+
+	--:RETALIATION_APPLY_DAMAGE|
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|-[$RetaliationDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:RETALIATION_APPLY_PARTIAL_DAMAGE|
+		--=RemainderDamage|[$RetaliationDamage] - [*S:t-bar3_value]
+		--@alter|_target|@{selected|token_id} _bar|3 _amount|-[*S:t-bar3_value]
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:RETALIATION_APPLY_TEMP_DAMAGE|
+		--@alter|_target|@{selected|token_id} _bar|3 _amount|-[$RetaliationDamage]
+		--^MARK_SOURCE_TOKEN|
+	--<|
+
+	--:MARK_SOURCE_TOKEN|
+		--=HalfHP|[*S:hp^] \ 2
+		--=HPTotal|[*S:t-bar1_value] + [*S:t-bar3_value]
+		--=EstFinalHP|[$HPTotal] - [$RetaliationDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_SOURCE_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_SOURCE_TOKEN_DEAD
+	--<|
+
+  	--:MARK_SOURCE_TOKEN_RED|
+  		--@token-mod| _ids [*S:t-id] _set statusmarkers#red
+  	--<|
+
+  	--:MARK_SOURCE_TOKEN_DEAD|
+  		--@token-mod| _ids [*S:t-id] _set statusmarkers#dead|-red
+  	--<|
+}}

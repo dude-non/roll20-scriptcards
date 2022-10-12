@@ -1,0 +1,147 @@
+!scriptcard{{
+	--#title|Wild Soul Barbarian Rage
+	--#sourceToken|@{selected|token_id}
+
+	--=SaveDC|8 + [*S:pb] + [*S:constitution_mod]
+	--+SAVE DC|[$SaveDC]
+
+	--&ResistancesOn|Magical Slashing, Magical Piercing, Magical Bludgeoning, Fire
+	--&ResistancesOff|Fire
+
+	--+RAGE|[rbutton]Roll Rage::ROLL_RAGE[/rbutton]
+	--+RAGE|[rbutton]1) Necrotic Surge::NECROTIC_SURGE[/rbutton]
+	--+RAGE|[rbutton]2) Temporal Surge::TEMPORAL_SURGE[/rbutton]
+	--+RAGE|[rbutton]3) Floaty Friend Go Boom::FFGB_SURGE[/rbutton]
+	--+RAGE|[rbutton]4) Magical Infusion::INFUSION_SURGE[/rbutton]
+	--+RAGE|[rbutton]5) Retributive Surge::RETRIBUTIVE_SURGE[/rbutton]
+	--+RAGE|[rbutton]6) Protective Surge::PROTECTIVE_SURGE[/rbutton]
+	--+RAGE|[rbutton]7) Ivy Surge::IVY_SURGE[/rbutton]
+	--+RAGE|[rbutton]8) Chest Laser::CHEST_LASER[/rbutton]
+	--+RAGE|[rbutton]End Rage::END_RAGE[/rbutton]
+
+	--X|
+
+	--:ROLL_RAGE|
+		--? [*S:class_resource] -lt 1|NOT_ENOUGH_RAGE
+		--@modattr| _charid [*S:character_id] _class_resource|-1 _silent
+
+		--&EffectString|@{selected|bar2}
+
+		--=Roll1|1d8
+		--=Roll2|1d8
+
+		--+Rolls|[$Roll1] & [$Roll2]
+
+		--? [$Roll1] -eq [$Roll2]|CHOOSE_RAGE
+
+		--C[$Roll1]|1:>NECROTIC_SURGE|2:>TEMPORAL_SURGE|3:>FFGB_SURGE|4:>INFUSION_SURGE|5:>RETRIBUTIVE_SURGE|6:>PROTECTIVE_SURGE|7:>IVY_SURGE|8:>CHEST_LASER
+		--C[$Roll2]|1:>NECROTIC_SURGE|2:>TEMPORAL_SURGE|3:>FFGB_SURGE|4:>INFUSION_SURGE|5:>RETRIBUTIVE_SURGE|6:>PROTECTIVE_SURGE|7:>IVY_SURGE|8:>CHEST_LASER
+
+		--&EffectString|+Rage
+
+		--+STORMBRINGER|[rbutton]Lightning::STORMBRINGER;t[/rbutton] or [rbutton]Thunder::STORMBRINGER;t[/rbutton]?
+	--X|
+
+	--:STORMBRINGER|
+		--&Mode|[&reentryval]
+
+		--? [&Mode] -eq l|>LIGHTNING
+		--? [&Mode] -eq t|>THUNDER
+
+		--@token-mod| _ids @{selected|token_id} _set bar2_value|[&EffectString]
+		--@setattr| _charid [*S:character_id] _npc_resistances|[&ResistancesOn] _silent
+	--X|
+
+	--:LIGHTNING|
+		--&ResistancesOn|+,Lightning
+	--<|
+
+	--:THUNDER|
+		--&ResistancesOn|+,Thunder
+	--<|
+
+	--:NECROTIC_SURGE|
+		--+ABILITY|Necrotic Surge
+		--+EFFECT|Creatures around you are hit with Necrotic Energies, sapping their life and feeding your own.
+		--+RANGE|30 ft. of User
+		--+SAVE|[$SavingThrow] Con Save
+		--+DAMAGE|1d12 Necrotic Damage
+		--=Healing|1d12
+		--+HEALING|[$Healing] Temp Hit Points
+		--? @{selected|hp_temp} -ge [$Healing]|SkipHealing
+		--@setattr| _charid [*S:character_id] _hp_temp|[$Healing] _silent
+		--:SkipHealing|
+		--+ABILITY|You may find this ability under your Saving-Throws Macro
+	--<|
+	--X|
+
+	--:TEMPORAL_SURGE|
+		--+ABILITY|Temporal Surge
+		--+EFFECT|You Teleport to an unoccupied space you can see, and until your rage ends you can use this effect again as a Bonus Action.
+		--+RANGE|30 ft.
+	--<|
+	--X|
+
+	--:FFGB_SURGE|
+		--+ABILITY|Floaty Friend Go Boom
+		--+EFFECT|An intangible spirit (Flumph or Pixie) appears within 5 ft. of a Creature of your choice. At the end of the current Turn, the Spirit Explodes, and each Creature within 5 ft. of it must Save. Until your Rage ends, you can repeat this Summoning as a Bonus Action.
+		--@forselected+|Spawn _name|Wild Magic Spirit _offset|0,-1 _qty|1 _fx|burst-magic
+		--+ABILITY|You may find this ability under your Summons Macro
+	--<|
+	--X|
+
+	--:INFUSION_SURGE|
+		--+ABILITY|Magical Infusion
+		--+EFFECT|Magic Infuses 1 Weapon of your Choice that you are Holding. Until your Rage ends, the Weapon's Damage Type changes to Force and it gains the Light and Thrown Properties. If the Weapon leaves your hand, the Weapon reappears in your hand at the end of the current Turn.
+		--+RANGE|20/60 ft.
+	--<|
+	--X|
+
+	--:RETRIBUTIVE_SURGE|
+		--+ABILITY|Retributive Surge
+		--+EFFECT|Whenever a Creature hits you with an Attack Roll before your Rage ends, that creature takes Retaliatory Force Damage.
+		--+DAMAGE|1d6 Force Damage
+	--<|
+	--X|
+
+	--:PROTECTIVE_SURGE|
+		--+ABILITY|Protective Surge
+		--+EFFECT|Until your Rage ends, you are surrounded by multicolored Protective lights; you and your Allies recieve a defensive bonus.
+		--+RANGE|10 ft. Aura
+		--+AC|+1
+		--+ABILITY|You can toggle this active on your character sheet under Global AC Modifiers!
+	--<|
+	--X|
+
+	--:IVY_SURGE|
+		--+ABILITY|Ivy Surge
+		--+EFFECT|Flowers and Vines temporarily grow around you. Until your rage ends, this area is Difficult Terrain for your Enemies.
+		--+RANGE|15 ft. Aura
+	--<|
+	--X|
+
+	--:CHEST_LASER|
+		--+ABILITY|Chest Laser
+		--+EFFECT|A bolt of light shoots from your chest. Another Creature of your Choice that you can see must save. Until your Rage ends, you can repeat this Effect as a Bonus Action.
+		--+ABILITY|You may find this ability under your Saving-Throws Macro
+	--<|
+	--X|
+
+	--:END_RAGE|
+		--&EffectString|@{selected|bar2}
+
+		--~EffectString|string;replace;Rage;[&EmptyString];[&EffectString]
+
+		--@token-mod| _ids @{selected|token_id} _set bar2_value|[&EffectString]
+		--@setattr| _charid [*S:character_id] _npc_resistances|[&ResistancesOff] _silent
+	--X|
+
+	--:NOT_ENOUGH_RAGE|
+		--+FAILURE|You cannot muster the Anger to Rage...
+	--X|
+
+	--:CHOOSE_RAGE|
+		--+DOUBLES|Pick 2!
+	--X|
+
+}}

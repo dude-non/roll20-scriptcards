@@ -1,0 +1,29 @@
+!scriptcard {{
+	--#title|Give Bardic Inspiration
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+	--#emoteText| @{selected|character_name} gives a Bardic Inspiration Die to @{target|character_name}
+
+	--+ABILITY|[button]Bardic Inspiration::APPLY_NORMAL[/rbutton]
+	--+ABILITY|[button]Flashy Finesse::APPLY[/rbutton]
+	--X|
+
+	--:APPLY_NORMAL|
+		--? @{selected|class_resource} -lt 1|NOT_ENOUGH_CHARGES
+
+		--=Remaining|@{selected|class_resource} - 1
+		--+Remaining Charges|[$Remaining]
+
+		--@modattr| _charid @{selected|character_id} _class_resource|-1 _silent
+	--^APPLY|
+
+	--:APPLY|
+		--&NewString|@{target|bar2}BardicInspiration
+
+		--@token-mod| _ids @{target|token_id} _set bar2_value|[&NewString]
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+Failure|Not Enough Dice to Give.
+	--X|
+}}

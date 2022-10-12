@@ -1,0 +1,11 @@
+!scriptcard{{
+	--#title|Aura of Vitality - Bonus Action Healing
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=Healing|2d6
+	--+HEALING|[$Healing]
+
+	--@alter|_target|@{target|token_id} _bar|1 _amount|[$Healing]
+	--@modattr| _charid [*S:id] _class_resource|-1 _silent
+}}

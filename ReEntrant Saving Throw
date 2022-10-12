@@ -1,0 +1,366 @@
+!scriptcard{{
+	--#title|ReEntrant Saving Throw
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--:INIT_VALUES|
+	--=Damage1Count|0
+	--=Damage1Die|0
+	--&Damage1Type|NULL
+	--=Damage2Count|0
+	--=Damage2Die|0
+	--&Damage2Type|NULL
+	--&SEffectString|[*S:t-bar2_value]
+	--&TEffectString|[*T:t-bar2_value]
+	--=BardicDie|@{Wizord|BardicInspirationDie}
+	--=LuckyFlag|0
+	--&SaveStat|NULL
+	--&SaveType|NULL
+	--&RollString|NULL
+	--=SaveRoll|0
+	--&SaveMod|0
+	--=SaveDC|0
+	--&AttackName|NULL
+	--&Effect|NULL
+
+	--+CANTRIP|[rbutton]Poison Spray::POISON_SPRAY[/rbutton]
+	--+CANTRIP|[rbutton]Sacred Flame::SACRED_FLAME[/rbutton]
+	--+SPELL|[rbutton]Hold Person::HOLD_PERSON[/rbutton]
+
+	--X|
+
+	--:POISON_SPRAY|
+		--=Damage1Count|1
+		--=Damage1Die|10
+		--&Damage1Type|Poison
+		--&SaveStat|CON
+		--&SaveType|HALF
+		--=SaveDC|[*S:spell_save_dc]
+		--&AttackName|Poison Spray
+	--^SELECT_SAVE|
+
+	--:SACRED_FLAME|
+		--=Damage1Count|1
+		--=Damage1Die|8
+		--&Damage1Type|Radiant
+		--&SaveStat|DEX
+		--&SaveType|NONE
+		--=SaveDC|[*S:spell_save_dc]
+		--&AttackName|Sacred Flame
+	--^SELECT_SAVE|
+
+	--:HOLD_PERSON|
+		--&SaveStat|WIS
+		--=SaveDC|[*S:spell_save_dc]
+		--&AttackName|Hold Person
+		--&Effect|Creature is Paralyzed, and it may repeat its saving throw at the start of its turns.
+	--^SELECT_SAVE|
+
+	--:SELECT_SAVE|
+		--? [&SEffectString] -inc Invisible|>INVIS_EMOTE
+		--? [&SEffectString] -ninc Invisible|>NORMAL_EMOTE
+		--+SAVE|[rbutton]Advantage::SAVE_ROLL;2d20kh1[/rbutton]
+		--+SAVE|[rbutton]Normal::SAVE_ROLL;1d20[/rbutton]
+		--+SAVE|[rbutton]Disadvantage::SAVE_ROLL;2d20kl1[/rbutton]
+	--X|
+
+	--:INVIS_EMOTE|
+		--#emoteText|Something inflicts @{target|token_name} with their something?
+	--<|
+
+	--:NORMAL_EMOTE|
+		--#emoteText|@{selected|token_name} inflicts @{target|token_name} with their [&AttackName]
+	--<|
+
+	--:SAVE_ROLL|
+		--&RollString|[&reentryval]
+
+		--? [&SaveStat] -eq STR|>STR
+		--? [&SaveStat] -eq DEX|>DEX
+		--? [&SaveStat] -eq CON|>CON
+		--? [&SaveStat] -eq INT|>INT
+		--? [&SaveStat] -eq WIS|>WIS
+		--? [&SaveStat] -eq CHR|>CHR
+
+		--? [&TEffectString] -inc Bless|>BLESS
+		--? [&TEffectString] -inc Bane|>BANE
+		--? [&TEffectString] -inc MindSliver|>MIND_SLIVER
+
+		--&RollString|+ + [&SaveMod]
+		--+[&SaveStat] SAVE|[&RollString]
+		--+SAVE DC|[$SaveDC]
+		--=SaveRoll|[&RollString]
+		--+ROLL|[$SaveRoll]
+
+		--:REROLL_RETURN|
+		--? [$SaveRoll] -ge [$SaveDC]|SAVE
+		--? [$SaveRoll] -lt [$SaveDC]|FAIL
+	--X|
+
+	--:STR|
+		--&SaveMod|[*T:strength_save_bonus]
+	--<|
+
+	--:DEX|
+		--&SaveMod|[*T:dexterity_save_bonus]
+	--<|
+
+	--:CON|
+		--&SaveMod|[*T:constitution_save_bonus]
+	--<|
+
+	--:INT|
+		--&SaveMod|[*T:intelligence_save_bonus]
+	--<|
+
+	--:WIS|
+		--&SaveMod|[*T:wisdom_save_bonus]
+	--<|
+
+	--:CHR|
+		--&SaveMod|[*T:charisma_save_bonus]
+	--<|
+
+	--:BLESS|
+		--=Bless|1d4
+		--&SaveMod|+ + [$Bless.Raw]
+	--<|
+
+	--:BANE|
+		--=Bane|1d4
+		--&SaveMod|+ - [$Bane.Raw]
+	--<|
+
+	--:MIND_SLIVER|
+		--=Sliver|1d4
+		--&SaveMod|+ - [$Sliver.Raw]
+	--<|
+
+	--:SAVE|
+		--=SaveFlag|1
+		--+SAVE|The creature has Saved!
+		--? [$Damage1Count] -eq 0|SKIP_1
+		--? [&SaveType] -eq NONE|SKIP_1
+		--+DAMAGE|[rbutton]Apply Damage::DAMAGE[/rbutton]
+		--:SKIP_1|
+	--X|
+
+	--:FAIL|
+		--=SaveFlag|0
+		--+FAIL|The creature has Failed!
+		--? [&TEffectString] -inc BardicInspiration|>BARDIC_BUTTON
+		--? [&TEffectString] -inc Lucky|>LUCKY_BUTTON	
+		--? [&TEffectString] -inc RingOfEvasion|>RING_OF_EVASION_BUTTON		
+		--? [$Damage1Count] -eq 0|SKIP_2	
+		--+DAMAGE|[rbutton]Apply Damage::DAMAGE[/rbutton]
+		--:SKIP_2|
+		--? "[&Effect]" -eq NULL|SKIP_3
+		--+EFFECT|[&Effect]
+		--:SKIP_3|
+	--X|
+
+	--:BARDIC_BUTTON|
+		--+BARD.INSP|[rbutton]Use Bardic Inspiration::BARDIC_INSPIRATION[/rbutton]
+	--<|
+
+	--:LUCKY_BUTTON|
+		--? [*T:repeating_resource_$0_resource_left] -lt 1|SKIP_4
+		--? [$LuckyFlag] -eq 1|SKIP_4
+		--+LUCKY|[rbutton]Use Lucky::LUCKY_FEAT[/rbutton]
+		--:SKIP_4|
+	--<|
+
+	--:RING_OF_EVASION_BUTTON|
+		--? [&SaveType] -ne DEX|SKIP_RING_OF_EVASION
+		--? [*T:repeating_resource_$4_resource_right] -lt 1|SKIP_RING_OF_EVASION
+		--+EVASION|[rbutton]Use Ring of Evasion?::RING_OF_EVASION[/rbutton]
+		--:SKIP_RING_OF_EVASION|
+	--<|
+
+	--:BARDIC_INSPIRATION|
+		--~Before|string;before;BardicInspiration;[&TEffectString]
+		--~After|string;after;BardicInspiration;[&TEffectString]
+
+		--&TEffectString|[&Before][&After]
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString]
+		--=SaveRoll|[$SaveRoll] + 1d[$BardicDie.Raw]
+		--+NEW ROLL|[$SaveRoll]
+	--^REROLL_RETURN|
+
+	--:LUCKY_FEAT|
+		--@modattr| _charid [*T:character_id] _repeating_resource_$0_resource_left|-1 _silent
+		--=LuckyFlag|1
+
+		--? "[&RollString]" -inc 2d20kh1|>REMOVE_ADV
+		--? "[&RollString]" -inc 2d20kl1|>REMOVE_DISADV
+
+		--=LuckyRoll|[&RollString]
+		--+LUCKY ROLL|[$LuckyRoll]
+
+		--? [$LuckyRoll] -le [$SaveRoll]|SKIP_5
+		--=SaveRoll|[$LuckyRoll]
+		--:SKIP_5|
+	--^REROLL_RETURN|
+
+	--:REMOVE_ADV|
+		--~After|string;after;2d20kh1;[&RollString]
+
+		--&RollString|1d20[&After]
+	--<|
+
+	--:REMOVE_DISADV|
+		--~After|string;after;2d20kl1;[&RollString]
+
+		--&RollString|1d20[&After]
+	--<|
+
+	--:RING_OF_EVASION|
+		--@modattr| _charid [*T:id] _repeating_resource_$4_resource_right|-1 _silent
+		--+EVASION|You have used a charge of the Ring of Evasion to succeed on this save!
+		--=SaveRoll|[$SaveDC]
+	--^SAVE|
+
+
+	--:DAMAGE|
+		--=Damage1|0
+		--=Damage2|0
+
+		--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+		--? [$Damage2Count] -eq 0|SKIP_6
+		--&Damage2String|[$Damage2Count.Raw]d[$Damage2Die.Raw]
+		--:SKIP_6|
+
+		--? [$SaveFlag] -eq 0|SKIP_8
+		--? [&SaveType] -eq HALF|SKIP_8
+		--^SKIP_9|
+		--:SKIP_8|
+		--=Damage1|[&Damage1String]
+		--+[&Damage1Type] Damage|[$Damage1]
+		--? [$Damage2Count] -eq 0|SKIP_7
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] Damage|[$Damage2]
+		--:SKIP_7|
+		--:SKIP_9|
+
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>VULN_1
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>VULN_2
+		--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>RESIST_1
+		--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>RESIST_2
+		--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>IMMUNE_1
+		--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>IMMUNE_2
+
+		--? [&TEffectString] -inc Underwater|>UNDERWATER
+
+		--=TotalDamage|[$Damage1] + [$Damage2] 
+
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+		--@token-mod| _ids [*T:t-id] _set bar2_value|[&TEffectString] _ignore-selected
+	--^APPLY_SAVE_CHECK|
+
+	--:VULN_1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:VULN_2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:RESIST_1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:RESIST_2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:IMMUNE_1|
+		--=Damage1|0
+	--<|
+
+	--:IMMUNE_2|
+		--=Damage2|0
+	--<|
+
+	--:UNDERWATER|
+		--? "[*T:npc_resistances]" -inc "Fire"|SKIP_UNDERWATER
+		--? [&Damage1Type] -eq Fire|>RESIST_1
+		--? [&Damage2Type] -eq Fire|>RESIST_2
+		--:SKIP_UNDERWATER|
+	--<|
+
+	--:APPLY_SAVE_CHECK|
+		--=EvasiveFlag|0
+		--? [&SaveStat] -eq DEX|APPLY_DEX
+		--? [&SaveType] -eq HALF|APPLY_HALF
+		--? [$SaveFlag] -eq 0|APPLY_DAMAGE
+	--X|
+
+	--:APPLY_DEX|
+		--? [&TEffectString] -inc Evasive|APPLY_EVASIVE
+		--? [&SaveType] -eq HALF|APPLY_HALF
+		--? [$SaveFlag] -eq 0|APPLY_DAMAGE
+	--X|
+
+	--:APPLY_EVASIVE|
+		--=EvasiveFlag|1
+		--? [$SaveFlag] -eq 0|HALF_DAMAGE
+		--+EVASIVE|All Damage Mitigated!
+	--X|
+
+	--:APPLY_HALF|
+		--? [$SaveFlag] -eq 1|HALF_DAMAGE
+	--^APPLY_DAMAGE|
+
+	--:HALF_DAMAGE|	
+		--? [$EvasiveFlag] -eq 0|SKIP_10
+		--+EVASIVE|Half Damage Mitigated!
+		--:SKIP_10|
+		--=TotalDamage|[$TotalDamage] \ 2
+	--^APPLY_DAMAGE|	
+
+	--:APPLY_DAMAGE_THRESHOLD|
+		--+DT|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:APPLY_DAMAGE|
+		--? "[&TEffectString]" -inc "DT"|>APPLY_DAMAGE_THRESHOLD
+		--? @{target|bar3} -gt 0|APPLY_TEMP_DAMAGE
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_DAMAGE|
+		--? @{target|bar3} -lt [$TotalDamage]|APPLY_TEMP_PARTIAL
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_PARTIAL|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_TOKEN|
+
+	--:MARK_TOKEN|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_TOKEN_DEAD
+	--X|
+
+  	--:MARK_TOKEN_RED|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#red
+  	--X|
+
+  	--:MARK_TOKEN_DEAD|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#dead|-red
+  	--X|
+}}	

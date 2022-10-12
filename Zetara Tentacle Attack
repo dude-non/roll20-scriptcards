@@ -1,0 +1,338 @@
+!scriptcard{{
+	--#title|Tentacle Attacks
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=TargetAC|[*T:ac]
+	--? [*T:npc_ac] -lt [$TargetAC]|SkipAC
+	--=TargetAC|[*T:npc_ac]
+	--:SkipAC|
+
+	--? [*S:class_resource] -lt 1|NOT_ENOUGH_TIME
+	--@modattr| _charid [*S:id] _class_resource|-1 _silent
+
+	--+COVER|[rbutton]Half Cover::HALF_COVER[/rbutton]
+	--+COVER|[rbutton]3/4 Cover::3Q_COVER[/rbutton]
+	--:COVER_RETURN|
+
+	--:INIT_VALUES|
+	--=Damage1Count|1
+	--? @{Zetara|level} -lt 10|SKIP_EXTRA_DAMAGE_DIE
+	--=Damage1Count|2
+	--:SKIP_EXTRA_DAMAGE_DIE|
+	--=Damage1Die|8
+	--&Damage1Type|Cold
+	--=Damage2Count|0
+	--=Damage2Die|0
+	--&Damage2Type|NULL
+	--&DamageMod|0
+	--&ToHitMod|@{Zetara|spell_attack_bonus}
+	--&SEffectString|[*S:t-bar2_value]
+	--&TEffectString|[*T:t-bar2_value]
+	--=BardicFlag|0
+	--=BardicDie|@{Zailith Blackstaff|BardicInspirationDie}
+	--=CritFlag|0
+	--=LuckyFlag|0
+	--&AttackType|NULL
+	--&WeaponType|NULL
+	--&WeaponName|NULL
+	--=DamageFlag|0
+	--=GFBFlag|0
+	--=WBFlag|0
+	--=VTFlag|0
+	--&WeaponName|Tentacle
+
+	--:SELECT_ATTACK|
+		--#emoteText|@{selected|token_name} attacks @{target|token_name} with their [&WeaponName]
+		--+ATTACK|[rbutton]Advantage::TO_HIT;2d20kh1[/rbutton]
+		--+ATTACK|[rbutton]Normal::TO_HIT;1d20[/rbutton]
+		--+ATTACK|[rbutton]Disadvantage::TO_HIT;2d20kl1[/rbutton]
+	--X|
+
+	--:HALF_COVER|
+		--+COVER|Half Cover: AC + 2!
+		--=TargetAC|[$TargetAC] + 2
+	--^COVER_RETURN|
+
+	--:3Q_COVER|
+		--+COVER|3/4 Cover: AC + 5!
+		--=TargetAC|[$TargetAC] + 5
+	--^COVER_RETURN|
+
+	--:TO_HIT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--&RollString|[&reentryval] + [&ToHitMod]
+
+		--? [&SEffectString] -inc Bless|>BLESS
+		--? [&SEffectString] -inc Bane|>BANE
+		--? [&SEffectString] -inc BolsteringMagic|>BOLSTERING_MAGIC
+
+		--+ROLL|[&RollString]
+		--=ToHit|[&RollString]
+		--+TO HIT|[$ToHit]
+
+		--:LUCKY_RETURN|
+		--=CritFlag|0
+		--? [$ToHit.Base] -eq 20|CRITICAL
+		--? [$ToHit.Base] -eq 1|FUMBLE
+		--:BARDIC_RETURN|
+		--? [$ToHit] -ge [$TargetAC]|HIT
+		--? [$ToHit] -lt [$TargetAC]|MISS
+	--X|
+
+	--:BLESS|
+ 		--=Bless|1d4
+ 		--+Bless|[$Bless]
+ 		--&RollString|+ + [$Bless.Raw]
+	--<|
+
+	--:BANE|
+ 		--=Bane|1d4
+ 		--+Bane|[$Bane]
+ 		--&RollString|+ - [$Bane.Raw]
+	--<|
+
+	--:BOLSTERING_MAGIC|
+ 		--=Bolster|1d3
+ 		--+Bolstering Magic|[$Bolster]
+ 		--&RollString|+ + [$Bolster.Raw]
+	--<|
+
+	--:CRITICAL|
+		--? [&TEffectString] -inc CritNegate|NEGATE_CRIT
+		--=Damage1Count|[$Damage1Count] * 2
+		--=Damage2Count|[$Damage2Count] * 2
+		--+CRITICAL|[rbutton]Critical Hit!::DAMAGE[/rbutton]
+		--=CritFlag|1
+	--X|
+
+	--:NEGATE_CRIT|
+		--+CRITICAL|Critical Hit!
+		--+NEGATED|Critical Negated!
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:FUMBLE|
+		--+FUMBLE|Critical Failure.
+		--? [*S:repeating_resource_$0_resource_left] -lt 1|SKIP_LUCKY_FUMBLE
+		--? [$LuckyFlag] -eq 1|SKIP_LUCKY_FUMBLE
+		--+LUCKY|[rbutton]Use Lucky?::LUCKY[/rbutton]
+		--:SKIP_LUCKY_FUMBLE|
+	--X|
+
+	--:HIT|
+		--? [$WBFlag] -eq 1|>APPLY_WITCH_BOLT
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:MISS|
+		--+MISS|Miss.
+		--? [&SEffectString] -ninc BardicInspiration|SKIP_BARDIC
+		--? [$BardicFlag] -eq 1|SKIP_BARDIC
+		--+INSPIRED|[rbutton]Use Bardic Inspiration?::BARDIC_INSPIRATION[/rbutton]
+		--:SKIP_BARDIC|
+		--? @{Zetara|repeating_resource_$0_resource_left} -lt 1|SKIP_LUCKY_MISS
+		--? [$LuckyFlag] -eq 1|SKIP_LUCKY_MISS
+		--+LUCKY|[rbutton]Use Lucky?::LUCKY[/rbutton]
+		--:SKIP_LUCKY_MISS|
+	--X| 
+
+	--:BARDIC_INSPIRATION|
+		--? [$BardicFlag] -eq 1|ERROR_BARDIC
+		--=BardicFlag|1
+		--=Bardic|1d[$BardicDie.Raw]
+		--+Bardic Roll|[$Bardic]
+		--=ToHit|[$ToHit] + [$Bardic]
+		--+New To Hit|[$ToHit]
+
+		--~Before|string;before;BardicInspiration;[&SEffectString]
+		--~After|string;after;BardicInspiration;[&SEffectString]
+
+		--&SEffectString|[&Before][&After]
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString]
+	--^BARDIC_RETURN|
+
+	--:LUCKY|
+		--@modattr| _charid @{Zetara|character_id} _repeating_resource_$0_resource_left|-1 _silent
+		--=LuckyFlag|1
+
+		--? "[&RollString]" -inc "2d20kh1"|>REMOVE_ADV
+		--? "[&RollString]" -inc "2d20kl1"|>REMOVE_DISADV
+
+		--=ToHit|[&RollString]
+		--+NEW TO HIT|[$ToHit]
+	--^LUCKY_RETURN|
+
+	--:REMOVE_ADV|
+		--~After|string;after;2d20kh1;[&RollString]
+
+		--&RollString|1d20[&After]
+	--<|
+
+	--:REMOVE_DISADV|
+		--~After|string;after;2d20kl1;[&RollString]
+
+		--&RollString|1d20[&After]
+	--<|
+
+	--:DAMAGE|		
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--? [$DamageFlag] -eq 1|ERROR_DAMAGE
+		--=DamageFlag|1
+		--=Damage1|0
+		--=Damage2|0
+
+		--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+		--? [$Damage2Count] -eq 0|SkipDamage2a
+		--&Damage2String|[$Damage2Count.Raw]d[$Damage2Die.Raw]
+		--:SkipDamage2a|
+
+		--? [&SEffectString] -inc Enlarged|>ENLARGED
+		--? [&SEffectString] -inc Reduced|>REDUCED
+
+		--<|
+
+		--&Damage1String|+ + [&DamageMod]
+
+		--=Damage1|[&Damage1String]
+		--+[&Damage1Type] DAMAGE|[$Damage1]
+		--? [$Damage2Count] -eq 0|SkipDamage2b
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] DAMAGE|[$Damage2]
+		--:SkipDamage2b|
+
+		--? [&SEffectString] -inc Enfeebled|>ENFEEBLED
+
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>VULN_1
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>VULN_2
+		--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>RESIST_1
+		--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>RESIST_2
+		--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>IMMUNE_1
+		--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>IMMUNE_2
+
+		--=TotalDamage|[$Damage1] + [$Damage2] + [$EMDamage]
+
+		--? "[&TEffectString]" -inc "DT"|>APPLY_DAMAGE_THRESHOLD
+
+		--+TotalDamage|[$TotalDamage]
+
+		--? [$VTFlag] -eq 1|>APPLY_VT_HEALING
+	--^APPLY_DAMAGE|
+
+	--:APPLY_VT_HEALING|
+		--=Healing|[$Damage1] \ 2
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|[$Healing]
+	--<|
+
+	--:ENLARGED|
+		--? [&AttackType] -ne STR|ENLARGED_SKIP
+		--? [$CritFlag] -eq 1|ENLARGED_CRIT
+		--&Damage1String|+ + 1d4
+		--:ENLARGED_CRIT_RETURN|
+		--:ENLARGED_SKIP|
+	--<|
+
+	--:ENLARGED_CRIT|
+		--&Damage1String|+ + 2d4
+	--^ENLARGED_CRIT_RETURN|
+
+	--:REDUCED|
+		--? [&AttackType] -eq NONE|SKIP_REDUCED
+		--&Damage1String|+ - 1d4
+		--:SKIP_REDUCED|
+	--<|
+	
+	--:ENFEEBLED|
+		--? [&AttackType] -ne STR|SKIP_ENFEEBLED
+		--+ENFEEBLED|Damage Halved!
+		--=Damage1|[$Damage1] \ 2
+		--:SKIP_ENFEEBLED|
+	--<|
+
+	--:VULN_1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:VULN_2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:RESIST_1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:RESIST_2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:IMMUNE_1|
+		--=Damage1|0
+	--<|
+
+	--:IMMUNE_2|
+		--=Damage2|0
+	--<|
+
+	--:APPLY_DAMAGE_THRESHOLD|
+		--+DT|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:APPLY_DAMAGE|
+		--? @{target|bar3} -gt 0|APPLY_TEMP_DAMAGE
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_DAMAGE|
+		--? @{target|bar3} -lt [$TotalDamage]|APPLY_TEMP_PARTIAL
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_PARTIAL|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_TOKEN|
+
+	--:MARK_TOKEN|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_TOKEN_DEAD
+	--X|
+
+  	--:MARK_TOKEN_RED|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#red
+  	--X|
+
+  	--:MARK_TOKEN_DEAD|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#dead|-red
+  	--X|
+
+  	--:ERROR_BARDIC|
+  		--+ERROR|You have already used Bardic Inspiration!
+  	--X|
+
+  	--:ERROR_DAMAGE|
+  		--+ERROR|You have already applied Damage!
+  	--X|
+
+  	--:NOT_ENOUGH_SLOTS|
+  		--+ERROR|Not Enough Level [$Level] Slots to Cast!
+  	--X|
+
+  	--:NOT_ENOUGH_TIME|
+  		--+ERROR|No Rounds Remaining!
+  	--X|
+}}

@@ -1,0 +1,357 @@
+!scriptcard{{
+	--#title|Vehicle Weapon Attack
+	--#sourceToken|@{selected|token_id}
+	--#targetToken|@{target|token_id}
+
+	--=TargetAC|[*T:ac]
+	--? [$TargetAC] -gt 0|SkipAC
+	--=TargetAC|[*T:npc_ac]
+	--:SkipAC|
+
+	--#emoteText|@{selected|token_name} Fires!
+
+	--:INIT_VALUES|
+	--&ToHitBonus|NULL
+	--&AttackType|VEHICLE
+	--=Damage1Count|0
+	--=Damage1Die|0
+	--&Damage1Type|TYPE
+	--=Damage2Count|0
+	--=Damage2Die|0
+	--&Damage2Type|TYPE
+	--=AmmoCost|0
+	--&SourceType|NULL
+	--&WeaponTags|NULL
+
+	--? [&TEffectString] -inc Sunder|>APPLY_SUNDER
+
+	--+COVER|[rbutton]Half Cover::HALF_COVER[/rbutton]
+	--+COVER|[rbutton]3/4 Cover::3Q_COVER[/rbutton]
+	--:COVER_RETURN|
+
+	--+WEAPON|[rbutton]Cannon::CANNON_ATTACK;c[/rbutton] [rbutton]Sunder::CANNON_ATTACK;cs[/rbutton] @{Fair Winds|repeating_resource_$0_resource_right} ball
+	--X|
+
+	--:HALF_COVER|
+		--+COVER|Half Cover: AC + 2!
+		--=TargetAC|[$TargetAC] + 2
+	--^COVER_RETURN|
+
+	--:3Q_COVER|
+		--+COVER|3/4 Cover: AC + 5!
+		--=TargetAC|[$TargetAC] + 5
+	--^COVER_RETURN|
+
+	--:APPLY_SUNDER|
+		--~AfterStart|string;after;Sunder:;[&TEffectString]
+		--~Num|string;before;:;[&AfterStart]
+
+		--=Num|[&Num]
+
+		--+SUNDER|Target was sundered, reduced AC!
+		--=TargetAC|[$TargetAC] - [$Num]
+	--<|
+
+	--:CANNON_ATTACK|
+		--&Mode|[&reentryval]
+		--&ToHitBonus|6
+		--=Damage1Count|4
+		--=Damage1Die|10
+		--&Damage1Type|Bludgeoning
+		--=Damage2Count|0
+		--=Damage2Die|0
+		--&Damage2Type|NULL
+		--=AmmoCost|1
+		--&SourceType|ALLY
+		--? [&Mode] -inc s|>CANNON_SUNDER
+	--^SELECT_ATTACK|
+
+	--:CANNON_SUNDER|
+		--=ForcesSave|1
+		--=Damage1Count|[$Damage1Count] \ 2
+		--=Damage2Count|[$Damage2Count] \ 2
+		--? [*T:strength_save_bonus] -ge [*T:dexterity_save_bonus]|>USE_STR
+		--? [*T:strength_save_bonus] -lt [*T:dexterity_save_bonus]|>USE_DEX
+		--&Effect|The Target's AC is Reduced by 1!
+		--=ApplyEffect|1
+		--&AppliedEffect|Sunder:#:
+		--=AppliedQty|1
+	--<|
+
+	--:USE_STR|
+		--&SaveStat|STR
+	--<|
+
+	--:USE_DEX|
+		--&SaveStat|DEX
+	--<|
+
+	--:SELECT_ATTACK|
+		--? @{Fair Winds|repeating_resource_$0_resource_right} -lt 1|NOT_ENOUGH_AMMO
+		--@modattr| _charid @{Fair Winds|character_id} _repeating_resource_$0_resource_right|-1 _silent
+		--+ATTACK|[rbutton]Advantage::TO_HIT;2d20kh1[/rbutton]
+		--+ATTACK|[rbutton]Normal::TO_HIT;1d20[/rbutton]
+		--+ATTACK|[rbutton]Disadvantage::TO_HIT;2d20kl1[/rbutton]
+	--X|
+
+	--:TO_HIT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--&RollString|[&reentryval] + [&ToHitMod]
+
+		--+ROLL|[&RollString]
+		--=ToHit|[&RollString]
+		--+TO HIT|[$ToHit]
+
+		--? [$ToHit.Base] -eq 20|CRITICAL
+		--? [$ToHit.Base] -eq 1|FUMBLE
+		--? [$ToHit] -ge [$TargetAC]|HIT
+		--? [$ToHit] -lt [$TargetAC]|MISS
+	--X|
+
+	--:CRITICAL|
+		--? [&TEffectString] -inc CritNegate|NEGATE_CRIT
+		--=CritBonus|[$Damage1Count.Raw] * [$Damage1Die.Raw]
+		--&DamageMod|+ + [$CritBonus] [CRIT]
+		--=Damage2Count|[$Damage2Count] * 2
+		--:CRIT_RETURN|
+		--+CRITICAL|[rbutton]Critical Hit!::DAMAGE[/rbutton]
+		--=CritFlag|1
+	--X|
+
+	--:NEGATE_CRIT|
+		--+CRITICAL|Critical Hit!
+		--+NEGATED|Critical Negated!
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:FUMBLE|
+		--+FUMBLE|Critical Failure.
+	--X|
+
+	--:HIT|
+		--+HIT|[rbutton]Hit!::DAMAGE[/rbutton]
+	--X|
+
+	--:MISS|
+		--+MISS|Miss.
+	--X| 
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--? [$DamageFlag] -eq 1|ERROR_DAMAGE
+		--=DamageFlag|1
+		--=Damage1|0
+		--=Damage2|0
+
+		--&Damage1String|[$Damage1Count.Raw]d[$Damage1Die.Raw]
+		--? [$Damage2Count] -eq 0|SkipDamage2a
+		--&Damage2String|[$Damage2Count.Raw]d[$Damage2Die.Raw]
+		--:SkipDamage2a|
+
+		--&Damage1String|+ + [&DamageMod]
+
+		--=Damage1|[&Damage1String]
+		--+[&Damage1Type] Damage|[$Damage1]
+		--? [$Damage2Count] -eq 0|SkipDamage2b
+		--=Damage2|[&Damage2String]
+		--+[&Damage2Type] Damage|[$Damage2]
+		--:SkipDamage2b|
+
+		--? [&SEffectString] -inc Enfeebled|>ENFEEBLED
+
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage1Type]"|>VULN_1
+		--? "[*T:npc_vulnerabilities]" -inc "[&Damage2Type]"|>VULN_2
+		--? "[*T:npc_resistances]" -inc "[&Damage1Type]"|>RESIST_1
+		--? "[*T:npc_resistances]" -inc "[&Damage2Type]"|>RESIST_2
+		--? "[*T:npc_immunities]" -inc "[&Damage1Type]"|>IMMUNE_1
+		--? "[*T:npc_immunities]" -inc "[&Damage2Type]"|>IMMUNE_2
+
+		--? [&TEffectString] -inc Underwater|>UNDERWATER
+
+		--=TotalDamage|[$Damage1] + [$Damage2]
+
+		--? "[&TEffectString]" -inc "DT"|>APPLY_DAMAGE_THRESHOLD
+
+		--+TotalDamage|[$TotalDamage]
+
+		--? [$ForcesSave] -eq 1|>PROMPT_SAVE
+	--^APPLY_DAMAGE|
+
+	--:VULN_1|
+		--=Damage1|[$Damage1] * 2
+	--<|
+
+	--:VULN_2|
+		--=Damage2|[$Damage2] * 2
+	--<|
+
+	--:RESIST_1|
+		--=Damage1|[$Damage1] \ 2
+	--<|
+
+	--:RESIST_2|
+		--=Damage2|[$Damage2] \ 2
+	--<|
+
+	--:IMMUNE_1|
+		--=Damage1|0
+	--<|
+
+	--:IMMUNE_2|
+		--=Damage2|0
+	--<|
+
+	--:UNDERWATER|
+		--? "[*T:npc_resistances]" -inc "Fire"|SKIP_UNDERWATER
+		--? [&Damage1Type] -eq Fire|>RESIST_1
+		--? [&Damage2Type] -eq Fire|>RESIST_2
+		--:SKIP_UNDERWATER|
+	--<|
+
+	--:APPLY_DAMAGE_THRESHOLD|
+		--+DT|Applying Damage Threshold...
+
+		--~AfterString|string;after;DT;[&EffectString2]
+		--~DT|string;left;2;[&AfterString]
+		--=DT|[&DT]
+
+		--? [$TotalDamage] -le [$DT]|[
+			--=TotalDamage|0
+			--+Resisted|@{target|character_name} Resisted the Attack!
+		--]|
+	--<|
+
+	--:APPLY_DAMAGE|
+		--? @{target|bar3} -gt 0|APPLY_TEMP_DAMAGE
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_DAMAGE|
+		--? @{target|bar3} -lt [$TotalDamage]|APPLY_TEMP_PARTIAL
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-[$TotalDamage]
+		--^MARK_TOKEN|
+
+	--:APPLY_TEMP_PARTIAL|
+		--=RemainderDamage|[$TotalDamage] - @{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|3 _amount|-@{target|bar3}
+		--@alter|_target|@{target|token_id} _bar|1 _amount|-[$RemainderDamage]
+		--^MARK_TOKEN|
+
+	--:MARK_TOKEN|
+		--=HalfHP|[*T:hp^] \ 2
+		--=HPTotal|@{target|bar1} + @{target|bar3}
+		--=EstFinalHP|[$HPTotal] - [$TotalDamage]
+		--? [$EstFinalHP] -le [$HalfHP] -and [$EstFinalHP] -gt 0|MARK_TOKEN_RED
+		--? [$EstFinalHP] -le 0|MARK_TOKEN_DEAD
+	--X|
+
+  	--:MARK_TOKEN_RED|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#red
+  	--X|
+
+  	--:MARK_TOKEN_DEAD|
+  		--@token-mod| _ids [*T:t-id] _ignore-selected _set statusmarkers#dead|-red
+  	--X|
+
+  	--:ERROR_DAMAGE|
+  		--+ERROR|You have already applied Damage!
+  	--X|
+
+	--:NOT_ENOUGH_AMMO|
+		--+ERROR|Not Enough Ammo!
+	--X|
+
+  	--:PROMPT_SAVE|
+  		--+SAVE|[rbutton]Advantage::SAVE_ROLL;2d20lh1[/rbutton]
+  		--+SAVE|[rbutton]Normal::SAVE_ROLL;1d20[/rbutton]
+  		--+SAVE|[rbutton]Disadvantage::SAVE_ROLL;2d20ll1[/rbutton]
+  	--<|
+
+	--:SAVE_ROLL|
+		--&RollString|[&reentryval]
+
+		--? [&SaveStat] -eq STR|>STR
+		--? [&SaveStat] -eq DEX|>DEX
+		--? [&SaveStat] -eq CON|>CON
+		--? [&SaveStat] -eq INT|>INT
+		--? [&SaveStat] -eq WIS|>WIS
+		--? [&SaveStat] -eq CHR|>CHR
+
+		--? [&TEffectString] -inc Bless|>BLESS_SAVE
+		--? [&TEffectString] -inc Bane|>BANE_SAVE
+		--? [&TEffectString] -inc MindSliver|>MIND_SLIVER
+
+		--&RollString|+ + [&SaveMod]
+		--+[&SaveStat] SAVE|[&RollString]
+		--+SAVE DC|[$SaveDC]
+		--=SaveRoll|[&RollString]
+		--+ROLL|[$SaveRoll]
+
+		--:REROLL_RETURN|
+		--? [$SaveRoll] -ge [$SaveDC]|SAVE
+		--? [$SaveRoll] -lt [$SaveDC]|FAIL
+	--X|
+
+	--:STR|
+		--&SaveMod|[*T:strength_save_bonus]
+	--<|
+
+	--:DEX|
+		--&SaveMod|[*T:dexterity_save_bonus]
+	--<|
+
+	--:CON|
+		--&SaveMod|[*T:constitution_save_bonus]
+	--<|
+
+	--:INT|
+		--&SaveMod|[*T:intelligence_save_bonus]
+	--<|
+
+	--:WIS|
+		--&SaveMod|[*T:wisdom_save_bonus]
+	--<|
+
+	--:CHR|
+		--&SaveMod|[*T:charisma_save_bonus]
+	--<|
+
+	--:SAVE|
+		--+SAVE|The Target Saved!
+		--? "[&WeaponName]" -ninc "Flail"|SKIP_MASTER_FLAIL
+		--+MASTER|As a Master with the Flail, you can make an additional Attack for free!
+		--:SKIP_MASTER_FLAIL|
+	--X|
+
+	--:FAIL|
+		--+FAIL|The Target Failed!
+		--+EFFECT|[&Effect]
+		--? [$ApplyEffect] -eq 1|>APPLY_EFFECT
+	--X|
+
+	--:APPLY_EFFECT|
+		--&SEffectString|[*S:t-bar2_value]
+		--&TEffectString|[*T:t-bar2_value]	
+		--~BeforeNum|string;before;#;[&AppliedEffect]
+		--~AfterNum|string;after;#;[&AppliedEffect]
+
+		--? [&TEffectString] -inc [&BeforeNum]|ADD_TO_CURRENT_EFFECT
+
+		--&ApplyString|[&BeforeNum][$AppliedQty.Raw][&AfterNum]
+		--&TEffectString|+[&ApplyString]
+		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+
+	--:ADD_TO_CURRENT_EFFECT|	
+		--~AfterStart|string;after;[&BeforeNum];[&TEffectString]
+		--~BeforeStart|string;before;[&BeforeNum];[&TEffectString]		
+		--~BeforeEnd|string;before;[&AfterNum];[&AfterStart]	
+		--~AfterEnd|string;after;[&AfterNum];[&AfterStart]		
+
+		--=CurrentVal|[&BeforeEnd]
+		--=NewVal|[$CurrentVal] + [$AppliedQty]
+
+		--&TEffectString|[&BeforeStart][&BeforeNum][$NewVal.Raw][$AfterNum][&AfterEnd]
+		--@token-mod| _ids [*T:t-id] _ignore-selected _set bar2_value|[&TEffectString]
+	--X|
+}}

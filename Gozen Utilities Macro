@@ -1,0 +1,47 @@
+!scriptcard{{
+	--#title|Gozen Utilities Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+ABILITIES|Abilities
+	--+ABILITY|[rbutton]Action Surge::ACTION_SURGE[/rbutton]
+	--+ABILITY|[rbutton]Second Wind::SECOND_WIND[/rbutton]
+	--+ABILITY|[rbutton]Fighting Spirit::FIGHTING_SPIRIT[/rbutton]
+
+	--X|
+
+	--:ACTION_SURGE|
+		--? [*S:repeating_resource_$0_resource_right] -lt 1|ERROR_NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$0_resource_right|-1 _silent
+		--+ACTION SURGE|You gain another Action!
+	--X|
+
+	--:SECOND_WIND|
+		--? [*S:other_resource] -lt 1|ERROR_NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _other_resource|-1 _silent
+		--=HP|1d10 + [*S:level]
+		--+HP|[$HP]
+		--@alter|_target|@{selected|token_id} _bar|1 _amount|[$HP]
+	--X|
+
+	--:FIGHTING_SPIRIT|
+		--? [*S:repeating_resource_$0_resource_left] -lt 1|ERROR_NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _repeating_resource_$0_resource_left|-1 _silent
+		--=TempHP|5
+		--? [*S:level] -lt 10|SKIP_EXTRA_TEMP_HP
+		--=TempHP|10
+		--? [*S:level] -lt 15|SKIP_EXTRA_TEMP_HP
+		--=TempHP|15
+		--:SKIP_EXTRA_TEMP_HP|
+		--+FIGHTING SPIRIT|You gain [$TempHP] Temporary Hit Points and Advantage on all Attacks until the end of your Current Turn!
+		--? [*S:t-bar3_value] -gt [$TempHP]|FAILURE
+		--@token-mod| _ids [*S:t-id] _set bar3_value|[$TempHP]
+	--X|
+
+	--:ERROR_NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges!
+	--X|
+
+	--:FAILURE|
+		--+ERROR|You already have more than [$TempHP] Temporary Hit Points!
+	--X|
+}}

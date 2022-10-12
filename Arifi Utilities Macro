@@ -1,0 +1,34 @@
+!scriptcard{{
+	--#title|Arifi Utilities Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+ABILITIES|Abilities
+	--+ABILITY|Rubilax Armor of Agathys [rbutton]5::ARMOR_OF_AGATHYS;5[/rbutton] [rbutton]10::ARMOR_OF_AGATHYS;10[/rbutton] [rbutton]15::ARMOR_OF_AGATHYS;15[/rbutton]
+	--+ABILITY|[rbutton]Symbiotic Entity::SYMBIOTIC_ENTITY[/rbutton]
+
+	--X|
+
+	--:ARMOR_OF_AGATHYS|
+		--=HP|[&reentryval]
+		--+TEMP HP|[$HP]
+		--? [*S:hp_temp] -gt [$HP]|ERROR_TEMP_HP
+		--@token-mod| _ids [*S:t-id] _set _bar3_value|[$HP]
+	--X|
+
+	--:SYMBIOTIC_ENTITY|
+		--? [*S:class_resource] -lt 1|NOT_ENOUGH_CHARGES
+		--@modattr| _charid [*S:id] _class_resource|-1 _silent
+		--=HP|[*S:level] * 4
+		--+TEMP HP|[$HP]
+		--&SEffectString|@{selected|bar2}SymbioticEntity
+		--@token-mod| _ids [*S:t-id] _set bar2_value|[&SEffectString] _bar3_value|[$HP] _bar3_max|[$HP]
+	--X|
+
+	--:ERROR_TEMP_HP|
+		--+ERROR|You already have more than the new amount of Temp HP, new Temp HP ignored.
+	--X|
+
+	--:NOT_ENOUGH_CHARGES|
+		--+ERROR|Not Enough Charges to use that Ability!
+	--X|
+}}

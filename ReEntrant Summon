@@ -1,0 +1,25 @@
+!scriptcard{{
+	--#title|ReEntrant Summon Template
+	--#sourceToken|@{selected|token_id}
+
+	--+SUMMON|Chose Summon
+	--+SPELL|[rbutton]Fireball::FIREBALL[/rbutton]
+	--+ALLY|[rbutton]Zombie::ZOMBIE[/rbutton]
+	--X|
+
+	--:FIREBALL|
+		--+LEVEL|[rbutton]3::FIREBALL_SUMMON;3[/rbutton][rbutton]4::FIREBALL_SUMMON;4[/rbutton][rbutton]5::FIREBALL_SUMMON;5[/rbutton][rbutton]6::FIREBALL_SUMMON;6[/rbutton][rbutton]7::FIREBALL_SUMMON;7[/rbutton][rbutton]8::FIREBALL_SUMMON;8[/rbutton][rbutton]9::FIREBALL_SUMMON;9[/rbutton]
+	--X|
+
+	--:FIREBALL_SUMMON|
+		--=SpellLevel|[&reentryval]
+		--+SELECTION|Level [$SpellLevel] Fireball!
+		--@forselected+|Spawn _name|Fireball _offset|0,-1 _qty|1 _fx|burst-fire _size|6,6 _targets|[*S:t-token_id]
+		--@setattr| _charid @{Fireball|character_id} _SpellLevel|[$SpellLevel]
+	--X|
+
+	--:ZOMBIE|
+		--+SELECTION|Summoned 3 Zombies!
+		--@forselected+|Spawn _name|Zombie _offset|0,-1 _qty|3 _size|1,1
+	--X|
+}}

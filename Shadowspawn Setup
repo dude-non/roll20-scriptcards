@@ -1,0 +1,20 @@
+!scriptcard{{
+	--#title|Shadowspawn Setup
+	--#sourceToken|@{selected|token_id}
+
+	--&EffectString|@{selected|bar2}
+	--~Level|string;left;1;[&EffectString]
+	--=Bonus|[$Level] - 3
+
+	--=HP|35 + ([$Bonus] * 15)
+	--=AC|11 + [$Level]
+
+	--+LEVEL|[$Level]
+	--+HP|[$HP]
+	--+AC|[$AC]
+	--+DAMAGE|1d12 + 3 + [$Level] Cold Damage
+
+	--@setattr| _charid [*S:character_id] _hp|[$HP] _silent
+	--@setattr| _charid [*S:character_id] _hp_max|[$HP] _silent
+	--@setattr| _charid [*S:character_id] _ac|[$AC] _silent
+}}

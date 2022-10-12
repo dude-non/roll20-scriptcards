@@ -1,0 +1,14 @@
+!scriptcard{{
+	--#title|Loop Test
+
+	--+TEST|START LOOP
+
+	--%LoopCounter|1;10;1
+		--+TEST|[&LoopCounter]
+		--? [&LoopCounter] -lt 8|%
+		--+TEST|PASS
+		--%!|
+	--%|
+	--+TEST|END LOOP
+
+}}

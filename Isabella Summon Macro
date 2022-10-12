@@ -1,0 +1,32 @@
+!scriptcard{{
+	--#title|Isabella Summon Macro
+	--#sourceToken|@{selected|token_id}
+
+	--+SPELLS|Level 1
+	--+SPELL|Faerie Fire [rbutton]1::FAERIE_FIRE;1[/rbutton] [rbutton]2::FAERIE_FIRE;2[/rbutton]
+	--+SPELLS|Level 2
+	--+SPELL|Web [rbutton]2::WEB;2[/rbutton]
+
+	--X|
+
+	--:FAERIE_FIRE|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--+LEVEL|[$Level]
+		--@forselected+|Spawn _name|Faerie Fire _size|4,4 _targets|1 _bar2|[*S:spell_save_dc]	
+	--X|
+
+	--:WEB|
+		--=Level|[&reentryval]
+		--? [*S:lvl[$Level]_slots_expended] -lt 1|NOT_ENOUGH_SLOTS
+		--@modattr| _charid [*S:id] _lvl[$Level]_slots_expended|-1 _silent
+		--+LEVEL|[$Level]
+		--@forselected+|Spawn _name|Web _size|4,4 _targets|1	
+	--X|
+	
+	--:NOT_ENOUGH_SLOTS|
+		--+FAILURE|Not Enough Level [$Level] Slots to Cast!
+	--X|
+
+}}
